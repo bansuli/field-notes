@@ -18,6 +18,13 @@
   const px = n => parseFloat(getComputedStyle(frame).getPropertyValue(n)) || 0;
   const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
+  /* ---- the key as a pulley handle ----
+     Pulling it down scrolls the page, so whatever sits below the key
+     screen rises into view behind it. Plain scrolling does the same
+     thing, so this is a shortcut, never the only way through. */
+  const stays = document.querySelector('[data-pull-target]');
+  const PULL_GAIN = 1.6;          /* how far the page moves per px pulled */
+
   let dx = 0, dy = 0;        /* card offset from rest */
   let vx = 0, vy = 0;        /* spring velocity */
   let dragging = false;
@@ -25,14 +32,35 @@
   let lastTime = 0;
   let pointerOffset = { x: 0, y: 0 };
 
+  /* Everything the drag needs that cannot change while a finger is down,
+     read once here instead of on every pointer sample. getComputedStyle()
+     and offsetWidth each force the browser to recompute style and layout,
+     and the old code did both on every single move -- while scrolling the
+     page from the same handler, which dirties layout again. On a desktop
+     that is invisible; on a phone, where the samples arrive faster than the
+     screen refreshes, it is what made the key judder as you pulled it.
+     .hanging is position:fixed, so its viewport rect holds still while the
+     page scrolls underneath it. */
+  let ropeLength = 0, frameWidth = 0, frameLeft = 0, frameTop = 0;
+  let viewW = 1, viewH = 1, pullMax = 0;
+
+  function measure(){
+    ropeLength = px('--rope-length');
+    frameWidth = frame.offsetWidth;
+    viewW = window.innerWidth;
+    viewH = window.innerHeight;
+    const r = frame.getBoundingClientRect();
+    frameLeft = r.left;
+    frameTop  = r.top;
+    pullMax   = stays ? stays.offsetTop : 0;
+  }
+
   function draw(){
-    const ropeLength = px('--rope-length');
-    const frameWidth = frame.offsetWidth;
     /* where frame coordinate (0,0) sits inside the rope SVG. The SVG spans
        the full viewport width and starts 50vh above it -- see .hanging-rope
        in hanging.css, which these two numbers must match. */
-    const overflowX = window.innerWidth * 0.5 - frameWidth / 2;
-    const overflowY = window.innerHeight * 0.5;
+    const overflowX = viewW * 0.5 - frameWidth / 2;
+    const overflowY = viewH * 0.5;
 
     /* anchor at the top centre of the frame, card hangs below it */
     const x0 = frameWidth / 2, y0 = 0;
@@ -47,11 +75,17 @@
       `M ${x0 + overflowX} ${y0 + overflowY} Q ${cx + overflowX} ${cy + overflowY} ${x1 + overflowX} ${y1 + overflowY}`);
 
     /* the card leans into the direction it has been pulled */
-    const swing = clamp(dx / Math.max(window.innerWidth * 0.28, 1), -1, 1) * 12;
+    const swing = clamp(dx / Math.max(viewW * 0.28, 1), -1, 1) * 12;
     card.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) rotate(${swing.toFixed(2)}deg)`;
   }
 
   function frameTick(now){
+    /* A frame scheduled before the finger came down still fires after it,
+       and it would recompute dx/dy from the spring and paint straight over
+       the drag -- the key visibly fighting the hand holding it. Grabbing
+       the key cancels the spring, so bail rather than draw. */
+    if (dragging || !running){ running = false; return; }
+
     const dt = Math.min((now - lastTime) / 1000, 1 / 30);
     lastTime = now;
 
@@ -77,40 +111,49 @@
     running = false;
     vx = vy = 0;
     card.classList.add('is-dragging');
+    measure();
     const r = card.getBoundingClientRect();
     pointerOffset = { x: e.clientX - r.left, y: e.clientY - r.top };
     try { card.setPointerCapture(e.pointerId); } catch {}
   });
 
-  /* ---- the key as a pulley handle ----
-     Pulling it down scrolls the page, so whatever sits below the key
-     screen rises into view behind it. Plain scrolling does the same
-     thing, so this is a shortcut, never the only way through. */
-  const stays = document.querySelector('[data-pull-target]');
-  const PULL_GAIN = 1.6;          /* how far the page moves per px pulled */
+  /* A phone reports pointer moves faster than it repaints, so the samples
+     are collected and spent once per frame: one rope redraw and one scroll
+     per frame, never a queue of half-finished ones. */
+  let pending = null, queued = false;
 
-  card.addEventListener('pointermove', e => {
-    if (!dragging) return;
-    const parent = frame.getBoundingClientRect();
-    dx = e.clientX - parent.left - pointerOffset.x;
-    dy = e.clientY - parent.top - pointerOffset.y - px('--rope-length');
+  function applyDrag(){
+    queued = false;
+    if (!dragging || !pending) return;
+    dx = pending.x - frameLeft - pointerOffset.x;
+    dy = pending.y - frameTop  - pointerOffset.y - ropeLength;
     draw();
 
     if (stays && dy > 0){
-      window.scrollTo(0, Math.min(dy * PULL_GAIN, stays.offsetTop));
+      window.scrollTo(0, Math.min(dy * PULL_GAIN, pullMax));
     }
-  });
+  }
+
+  card.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    pending = { x: e.clientX, y: e.clientY };
+    if (!queued){
+      queued = true;
+      requestAnimationFrame(applyDrag);
+    }
+  }, { passive: true });
 
   function release(e){
     if (!dragging) return;
     dragging = false;
+    pending = null;
     card.classList.remove('is-dragging');
     if (e){ try { card.releasePointerCapture(e.pointerId); } catch {} }
 
     /* pulled far enough -- let it open the rest of the way, else fall back */
     if (stays && window.scrollY > 0){
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const target = window.scrollY > stays.offsetTop * 0.3 ? stays.offsetTop : 0;
+      const target = window.scrollY > pullMax * 0.3 ? pullMax : 0;
       window.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
     }
     if (matchMedia('(prefers-reduced-motion: reduce)').matches){
@@ -127,16 +170,17 @@
 
   card.addEventListener('pointerup', release);
   card.addEventListener('pointercancel', release);
-  window.addEventListener('resize', draw);
+  window.addEventListener('resize', () => { measure(); draw(); });
 
   /* ---- entrance ----
      The key starts above the viewport and drops on the same spring it
      uses when released, so the rope pays out behind it and it settles
      with a bounce rather than simply appearing. */
+  measure();
   if (matchMedia('(prefers-reduced-motion: reduce)').matches){
     draw();
   } else {
-    dy = -(px('--rope-length') + card.offsetHeight + 80);
+    dy = -(ropeLength + card.offsetHeight + 80);
     draw();                       /* paint it off-screen before first frame */
     setTimeout(() => {
       if (dragging || running) return;

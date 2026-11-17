@@ -114,12 +114,21 @@
        min-height also gives the hero its scroll runway. */
     .canvas{
       min-height:100vh;
-      padding:40px 0 90px;
+      /* No padding under the country block. That padding was scrollable
+         space past the end of the pinned run, so once you were on the last
+         country a hard flick could still push the whole block up off the
+         top of the screen -- the one thing that was supposed to stay put.
+         With it gone the page ends exactly where the last country does. */
+      padding:40px 0 0;
     }
 
     /* dropdown, right hand side.
        Custom rather than a native <select>: the OS draws a native option
-       list and no CSS can reach it, so it never matches the page. */
+       list and no CSS can reach it, so it never matches the page.
+       NB: the menu is currently parked -- its markup is commented out in
+       the body. Everything from here down to the end of the FULLSCREEN
+       COUNTRY NAV section is kept so uncommenting that markup is all it
+       takes to bring it back. */
     .country-select-wrap{
       display:flex;
       justify-content:flex-end;
@@ -335,6 +344,11 @@
       height:100vh;
       pointer-events:none;
       scroll-snap-align:start;
+      /* the countries are only a quarter-screen apart now, which a phone
+         flick clears in one throw -- and then the whole page runs on past
+         the section. 'always' makes each country a hard stop the scroll
+         cannot be carried over, so one flick moves one country. */
+      scroll-snap-stop:always;
     }
     .country-step:nth-of-type(1){ top:0; }
     .country-step:nth-of-type(2){ top:calc(1 * var(--step)); }
@@ -411,17 +425,18 @@
     @media (max-width: 640px){
       :root{
         /* 34px is 2.4% of a desktop page but 8.7% of a phone, so the same
-           number starved the hero line and the photo. 22px reads as the
-           same margin at this width. */
-        --gutter: 22px;
+           number starved the hero line and the photo. At 16px the margin
+           down each side is 4% -- tighter than the desktop page, which is
+           what it takes for the title to read as the same full-bleed line. */
+        --gutter: 16px;
       }
 
       /* The line is white-space:nowrap, so it has to be *sized* to fit --
-         it cannot wrap its way out of trouble. At 14.5vw the text measured
-         336px inside a 325px box and the final S was clipped by the
-         overflow-x:hidden on <html>. 13.2vw fills ~88% of the measure,
-         which is the same proportion the title holds on desktop. */
-      .hero-title{ font-size: 13.2vw; }
+         it cannot wrap its way out of trouble, and overflow is clipped
+         rather than scrolled. 14.8vw puts the text at 87% of the screen
+         against the 82% it holds on desktop, with ~18px of slack left in
+         the box in case the webfont is slow and a fallback sets the line. */
+      .hero-title{ font-size: 14.8vw; }
 
       /* 10px is under what anyone can comfortably read at arm's length;
          the line is a subtitle, not fine print */
@@ -430,13 +445,26 @@
         margin: 14px auto 10px;
       }
 
-      /* svh is the viewport with Safari's toolbars *showing*. Plain vh on
-         iOS is the toolbar-hidden height, so a 100vh box is taller than the
-         screen you actually arrive on and its bottom is cut off. The vh
-         line stays first as the fallback for anything older. */
-      .hero-image{ height: 56vh; height: 56svh; }
+      /* The photo runs to the bottom of the screen rather than stopping
+         halfway: the header is one screen tall and the picture takes
+         whatever the title and the line above it leave, so nothing has to
+         be guessed about how tall that type ends up.
+         svh, not vh -- plain vh on iOS is the toolbar-*hidden* height, so a
+         100vh header is taller than the screen you actually arrive on. */
+      header{
+        min-height:100vh;        /* fallback for anything without svh */
+        min-height:100svh;
+        display:grid;
+        grid-template-rows:auto 1fr;
+      }
+      /* .inner carries margin:0 auto, and an auto margin beats a grid
+         item's default stretch -- without this it shrinks to fit the title
+         and clips the last letter off the nowrap line */
+      header .inner{ width:100%; }
+      header .bleed{ min-height:0; }
+      .hero-image{ height:100%; }
 
-      .canvas{ padding:28px 0 60px; }
+      .canvas{ padding:28px 0 0; }
       .country-dd-trigger.is-open{ top:10px; }
 
       /* same svh correction for the pinned country block and its track, so
@@ -570,6 +598,14 @@
     <section class="canvas">
       <div class="inner">
 
+        <!-- MENU (parked) -- the hamburger that opened the fullscreen
+             country list. Taken off the page on 2026-11-17; the countries
+             are reachable by scrolling the list below.
+             To bring it back: delete this comment's opening and closing
+             markers here and on the .country-nav block further down. The
+             CSS and the JS that drive it are both still in place and will
+             pick it up again on their own. -->
+        <!--
         <div class="country-select-wrap">
           <div class="country-dd" id="countryDd">
             <button type="button" class="country-dd-trigger" id="countryDdTrigger"
@@ -578,6 +614,7 @@
             </button>
           </div>
         </div>
+        -->
 
         <div class="country-scroll" id="countryScroll">
           <div class="country-step" aria-hidden="true"></div>
@@ -616,6 +653,9 @@
 
   </div><!-- end #app -->
 
+  <!-- MENU (parked) -- the fullscreen country list. See the note on the
+       trigger above; uncomment both together to restore it. -->
+  <!--
   <div class="country-nav" id="countryNav" role="dialog" aria-modal="true" aria-label="Choose a country">
     <ul class="country-nav-list" aria-label="Countries">
       <li>
@@ -644,6 +684,7 @@
       </li>
     </ul>
   </div>
+  -->
 
   <div class="page-transition" id="pageTransition" aria-hidden="true">
     <span class="page-transition-label" id="pageTransitionLabel"></span>
@@ -684,7 +725,10 @@
       const photos  = [...document.querySelectorAll('.country-photo')];
       const trigger = document.getElementById('countryDdTrigger');
       const nav     = document.getElementById('countryNav');
-      const options = [...nav.querySelectorAll('.country-nav-item')];
+      /* the menu is parked (see the comments in the markup), so these are
+         null / empty. Everything below is written to work either way, so
+         putting the markup back is the only step needed to restore it. */
+      const options = nav ? [...nav.querySelectorAll('.country-nav-item')] : [];
 
       /* discrete state only -- the crossfade itself is driven by scroll */
       const mediaLink = document.getElementById('countryMediaLink');
@@ -745,31 +789,50 @@
         trigger.focus();
       }
 
-      trigger.addEventListener('click', () => navIsOpen() ? closeNav() : openNav());
+      if (trigger && nav){
+        trigger.addEventListener('click', () => navIsOpen() ? closeNav() : openNav());
 
-      options.forEach(o => {
-        o.addEventListener('mouseenter', () => highlight(options.indexOf(o)));
-      });
+        options.forEach(o => {
+          o.addEventListener('mouseenter', () => highlight(options.indexOf(o)));
+        });
 
-      document.addEventListener('keydown', e => {
-        if (!navIsOpen()) return;
-        switch (e.key){
-          case 'Escape':    closeNav(); break;
-          case 'ArrowDown': e.preventDefault(); focusOption(focusIndex + 1); break;
-          case 'ArrowUp':   e.preventDefault(); focusOption(focusIndex - 1); break;
-          case 'Tab':
-            /* keep focus inside: toggle between the list and the trigger */
-            e.preventDefault();
-            if (document.activeElement === trigger) focusOption(focusIndex);
-            else trigger.focus();
-            break;
-        }
-      });
+        document.addEventListener('keydown', e => {
+          if (!navIsOpen()) return;
+          switch (e.key){
+            case 'Escape':    closeNav(); break;
+            case 'ArrowDown': e.preventDefault(); focusOption(focusIndex + 1); break;
+            case 'ArrowUp':   e.preventDefault(); focusOption(focusIndex - 1); break;
+            case 'Tab':
+              /* keep focus inside: toggle between the list and the trigger */
+              e.preventDefault();
+              if (document.activeElement === trigger) focusOption(focusIndex);
+              else trigger.focus();
+              break;
+          }
+        });
+      }
 
       /* ---- scroll drives the active country ---- */
       const scroller = document.getElementById('countryScroll');
+      const block    = document.querySelector('.country-tabs');
       const order = tabs.map(el => el.dataset.country);
       scroller.style.setProperty('--country-steps', order.length);
+
+      /* How far the block stays pinned, which is the whole run of the four
+         countries. Measured off the block's own height rather than
+         window.innerHeight: on a phone the two are different numbers --
+         the block is sized in svh, the viewport with Safari's toolbars
+         showing, while innerHeight grows as those toolbars retract. Reading
+         innerHeight meant this distance changed underneath the reader
+         mid-scroll and the countries jumped.
+         Cached rather than measured per scroll event: it is a layout read,
+         and the handler writes styles, so doing it on every frame of a
+         scroll forces a fresh layout each time. */
+      let total = 0;
+      function measureTrack(){
+        total = scroller.offsetHeight - (block ? block.offsetHeight : window.innerHeight);
+      }
+      measureTrack();
 
       /* ease the ends of the fade so it glides instead of running linearly
          into its stops */
@@ -777,7 +840,6 @@
 
       let current = null;
       function updateFromScroll(){
-        const total = scroller.offsetHeight - window.innerHeight;
         if (total <= 0) return;
         const passed = clamp(-scroller.getBoundingClientRect().top, 0, total);
 
@@ -805,7 +867,10 @@
       /* called directly rather than through rAF: it is one rect read plus an
          integer compare, and rAF does not fire in background tabs */
       window.addEventListener('scroll', updateFromScroll, { passive: true });
-      window.addEventListener('resize', updateFromScroll);
+      window.addEventListener('resize', () => { measureTrack(); updateFromScroll(); });
+      /* images and the webfont settle after first paint and change the
+         block's height, so the track is worth re-measuring then */
+      window.addEventListener('load', () => { measureTrack(); updateFromScroll(); });
       updateFromScroll();
 
       /* ---- arriving back from a country page ----
@@ -822,7 +887,7 @@
         if (userScrolled) return;
         const i = order.indexOf(location.hash.replace('#', ''));
         if (i < 0) return;
-        const total = scroller.offsetHeight - window.innerHeight;
+        measureTrack();
         if (total <= 0) return;
         window.scrollTo(0, scroller.offsetTop + total * (i / Math.max(1, order.length - 1)));
         updateFromScroll();
@@ -875,7 +940,6 @@
 
       function scrollToCountry(value){
         const i = Math.max(0, order.indexOf(value));
-        const total = scroller.offsetHeight - window.innerHeight;
         const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
         window.scrollTo({
           top: scroller.offsetTop + total * (i / Math.max(1, order.length - 1)),
