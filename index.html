@@ -329,10 +329,10 @@
       /* One viewport for the pinned block, then one step per extra country.
          --step is the whole cost of moving from one country to the next, so
          it is the sensitivity dial: at 55vh a country took half a page of
-         scrolling and the section felt like a chore. A quarter-viewport is
-         roughly two wheel notches or a short thumb flick -- enough travel to
-         read as a deliberate move, not so much that you are grinding. */
-      --step:25vh;
+         scrolling and the section felt like a chore, and a quarter-viewport
+         still asked for three wheel notches. At 16vh a single notch carries
+         most of a country and the four of them run in half a screen. */
+      --step:16vh;
       height:calc(100vh + (var(--country-steps, 2) - 1) * var(--step));
     }
     /* one snap point per country, so a flick lands on a country rather
@@ -462,7 +462,15 @@
          and clips the last letter off the nowrap line */
       header .inner{ width:100%; }
       header .bleed{ min-height:0; }
-      .hero-image{ height:100%; }
+      /* The phone crop is tall and narrow, so cover scales the photo to the
+         height and throws away 735px of its width. Centred, that cut fell
+         straight through the figure -- she stands a quarter of the way
+         across the frame, which at a centred crop is 85px off the left edge.
+         Matching the crop to where she stands (22%) puts her back at about
+         a third of the way in, the same place she sits on a desktop.
+         Vertical position does not matter here: at this ratio the photo is
+         scaled to the exact height of the box, so none of it is cut away. */
+      .hero-image{ height:100%; background-position:22% center; }
 
       .canvas{ padding:28px 0 0; }
       .country-dd-trigger.is-open{ top:10px; }
@@ -474,7 +482,7 @@
         /* step in svh too, so the track and the pinned block are measured
            against the same viewport and the four countries finish exactly
            as the block lets go */
-        --step:25svh;
+        --step:16svh;
         height:calc(100svh + (var(--country-steps, 2) - 1) * var(--step));
       }
       .country-step{ height:100svh; }
