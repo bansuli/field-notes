@@ -44,6 +44,12 @@
       scroll-snap-type:y proximity;
       scrollbar-width:none;        /* Firefox */
       -ms-overflow-style:none;     /* old Edge */
+      /* touch-only, no effect on a pointer device: kill the grey box iOS and
+         Android flash over a tapped link, and stop Safari inflating type
+         when the phone is turned to landscape */
+      -webkit-tap-highlight-color:transparent;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
     }
     html::-webkit-scrollbar{ display:none; }   /* Safari / Chrome */
     html, body{ background:var(--paper); }
@@ -311,9 +317,13 @@
        through it, and scroll position picks the active country */
     .country-scroll{
       position:relative;
-      /* one viewport for the block, then a short step per extra country --
-         far less scrolling than a full viewport each */
-      --step:55vh;
+      /* One viewport for the pinned block, then one step per extra country.
+         --step is the whole cost of moving from one country to the next, so
+         it is the sensitivity dial: at 55vh a country took half a page of
+         scrolling and the section felt like a chore. A quarter-viewport is
+         roughly two wheel notches or a short thumb flick -- enough travel to
+         read as a deliberate move, not so much that you are grinding. */
+      --step:25vh;
       height:calc(100vh + (var(--country-steps, 2) - 1) * var(--step));
     }
     /* one snap point per country, so a flick lands on a country rather
@@ -394,25 +404,71 @@
       #app{ transition: none !important; }
     }
 
-    /* ===== RESPONSIVE ===== */
+    /* ===== RESPONSIVE =====
+       Phone only. Nothing below may reach the desktop layout, which is
+       already where it should be -- every rule here either lives inside this
+       query or is a touch-only property that a pointer device ignores. */
     @media (max-width: 640px){
-      .hero-title{
-        font-size: 14.5vw;
+      :root{
+        /* 34px is 2.4% of a desktop page but 8.7% of a phone, so the same
+           number starved the hero line and the photo. 22px reads as the
+           same margin at this width. */
+        --gutter: 22px;
       }
+
+      /* The line is white-space:nowrap, so it has to be *sized* to fit --
+         it cannot wrap its way out of trouble. At 14.5vw the text measured
+         336px inside a 325px box and the final S was clipped by the
+         overflow-x:hidden on <html>. 13.2vw fills ~88% of the measure,
+         which is the same proportion the title holds on desktop. */
+      .hero-title{ font-size: 13.2vw; }
+
+      /* 10px is under what anyone can comfortably read at arm's length;
+         the line is a subtitle, not fine print */
       p{
-        font-size: 10px;
-        margin: 12px auto 10px;
+        font-size: 11px;
+        margin: 14px auto 10px;
       }
-      .hero-image{ height: 56vh; }
+
+      /* svh is the viewport with Safari's toolbars *showing*. Plain vh on
+         iOS is the toolbar-hidden height, so a 100vh box is taller than the
+         screen you actually arrive on and its bottom is cut off. The vh
+         line stays first as the fallback for anything older. */
+      .hero-image{ height: 56vh; height: 56svh; }
+
       .canvas{ padding:28px 0 60px; }
       .country-dd-trigger.is-open{ top:10px; }
+
+      /* same svh correction for the pinned country block and its track, so
+         the photo and the four names are centred in the screen you can see
+         rather than in the one Safari reports */
+      .country-scroll{
+        /* step in svh too, so the track and the pinned block are measured
+           against the same viewport and the four countries finish exactly
+           as the block lets go */
+        --step:25svh;
+        height:calc(100svh + (var(--country-steps, 2) - 1) * var(--step));
+      }
+      .country-step{ height:100svh; }
       .country-tabs{
         grid-template-columns:1fr;
         gap:22px;
         top:0;
+        min-height:100svh;
       }
       .country-tabs-media{ order:-1; }
-      .country-tab{ padding:10px 0; }
+
+      /* 12px top and bottom puts each name in a ~43px row: a thumb-sized
+         target without opening gaps between the four names */
+      .country-tab{ padding:12px 0; }
+      .country-tab-title{ font-size:11vw; }
+
+      /* the menu list: clear of the X at the top, not jammed against the
+         bottom of a tall phone */
+      .country-nav{ padding:96px var(--gutter) 32px; }
+      .country-nav-name{ font-size:10.5vw; }
+      .country-nav-index{ width:2.6em; font-size:10px; }
+      .country-nav-item{ gap:16px; }
     }
   
     /* ===== LOADER =====

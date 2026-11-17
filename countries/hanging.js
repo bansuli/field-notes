@@ -28,7 +28,10 @@
   function draw(){
     const ropeLength = px('--rope-length');
     const frameWidth = frame.offsetWidth;
-    const overflowX = window.innerWidth * 0.5;
+    /* where frame coordinate (0,0) sits inside the rope SVG. The SVG spans
+       the full viewport width and starts 50vh above it -- see .hanging-rope
+       in hanging.css, which these two numbers must match. */
+    const overflowX = window.innerWidth * 0.5 - frameWidth / 2;
     const overflowY = window.innerHeight * 0.5;
 
     /* anchor at the top centre of the frame, card hangs below it */
@@ -157,11 +160,17 @@
   const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
   const head = document.querySelector('.page-head');
+  const screen = document.querySelector('.key-screen');
 
   function update(){
     /* hold at full strength across most of the key screen and only let go
        at the end, so the title and key overlap the list on the way out */
-    const vh = window.innerHeight;
+    /* measured off the key screen itself rather than window.innerHeight:
+       the two are the same number on a desktop, but on a phone the screen
+       is 100svh (the viewport with the browser toolbars showing) while
+       innerHeight grows as those toolbars retract -- and the fade has to
+       finish when the list arrives, not a toolbar's worth of scroll later */
+    const vh = (screen && screen.offsetHeight) || window.innerHeight;
     const hold = vh * 0.60;                          /* no fade before this */
     const fade = vh * 0.35;                          /* gone by ~95% of a screen */
     const o = clamp(1 - (window.scrollY - hold) / fade, 0, 1);

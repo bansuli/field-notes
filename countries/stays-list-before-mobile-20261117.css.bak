@@ -1,0 +1,181 @@
+/* ===== STAYS LIST =====
+   Each row carries its own photo, revealed by expanding the row itself --
+   no second column, so there is no empty lane when nothing is hovered.
+
+   On touch there is no hover, so every row is simply open: the list becomes
+   an ordinary scrollable set of images with no interaction to discover.
+*/
+
+.stays{
+  position:relative;
+  z-index:10;
+  /* clears the fixed page header when the list reaches the top */
+  padding:clamp(74px, 9vh, 104px) var(--gutter) 14vh;
+  /* a short list would leave too little scroll for the key screen to
+     finish fading -- this guarantees a full viewport of travel */
+  min-height:100vh;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+.stays-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+  /* dragging or double-clicking must never paint a selection highlight */
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.stay{
+  display:block;
+  padding:clamp(14px, 1.8vw, 22px) 0;
+  border-bottom:1px solid var(--hairline);
+  text-decoration:none;
+  color:var(--ink);
+}
+
+.stay-row{
+  display:grid;
+  grid-template-columns:3.2em 1fr auto;
+  align-items:baseline;
+  gap:clamp(14px, 2.4vw, 40px);
+}
+
+.stay-index{
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.12em;
+  color:var(--muted);
+}
+
+.stay-name{
+  font-weight:300;
+  font-size:clamp(24px, 3.2vw, 48px);
+  line-height:0.95;
+  letter-spacing:-0.02em;
+  text-transform:uppercase;
+  transition:font-weight 260ms ease, letter-spacing 260ms ease;
+}
+
+.stay-meta{
+  text-align:right;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  white-space:nowrap;
+}
+.stay-meta span{ display:block; }
+.stay-meta .town{ color:var(--ink); }
+.stay-meta .source{ opacity:0.6; }
+
+/* the photo lives in the row and is revealed by opening it */
+/* 0fr -> 1fr opens to the image's own height, so nothing is cropped
+   regardless of each photo's aspect ratio */
+.stay-photo{
+  display:grid;
+  grid-template-rows:0fr;
+  margin-left:calc(3.2em + clamp(14px, 2.4vw, 40px));
+  transition:grid-template-rows 460ms cubic-bezier(0.65,0,0.35,1),
+             margin-top 460ms cubic-bezier(0.65,0,0.35,1);
+}
+.stay-photo > span{ overflow:hidden; min-height:0; }
+.stay-photo img{
+  display:block;
+  width:min(640px, 100%);
+  height:auto;          /* full frame, never cropped */
+}
+
+/* ---- pointer devices: collapsed, opens on hover ---- */
+@media (hover: hover){
+  .stay:hover .stay-name{ font-weight:800; letter-spacing:-0.05em; }
+  .stay:hover .stay-photo,
+  .stay:focus-visible .stay-photo{
+    grid-template-rows:1fr;
+    margin-top:clamp(14px, 1.8vw, 22px);
+  }
+}
+
+/* ---- touch: no hover to discover, so every row is already open ---- */
+@media (hover: none){
+  .stay-photo{
+    grid-template-rows:1fr;
+    margin-top:14px;
+  }
+  .stay-name{ font-weight:800; letter-spacing:-0.05em; }
+}
+
+@media (max-width: 700px){
+  .stay-row{ grid-template-columns:2.4em 1fr; }
+  .stay-meta{ grid-column:2; text-align:left; margin-top:6px; }
+  .stay-meta span{ display:inline; }
+  .stay-meta .town::after{ content:" \00b7 "; }
+  .stay-photo{ margin-left:0; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .stay-photo{ transition:none; }
+}
+
+/* ===== GROUPED SOURCE =====
+   One row standing for a whole collection. It opens on hover exactly like
+   every other row opens its photo, so there is one behaviour to learn.
+*/
+.stay-group-count{ display:inline-flex; align-items:center; gap:0.55em; }
+
+.stay-group-body{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows 460ms cubic-bezier(0.65,0,0.35,1);
+}
+/* the clipper must carry no padding of its own -- padding survives a zero
+   height and would leave the row permanently open by that amount */
+.stay-group-body > div{ overflow:hidden; min-height:0; }
+
+.dw-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+  gap:clamp(14px, 1.6vw, 26px);
+  padding:clamp(18px, 2.4vw, 30px) 0 clamp(20px, 2.6vw, 32px);
+  margin-left:calc(3.2em + clamp(14px, 2.4vw, 40px));
+}
+.dw-card{ text-decoration:none; color:var(--ink); display:block; }
+.dw-card img{ display:block; width:100%; height:auto; margin-bottom:9px; }
+.dw-card-name{
+  display:block;
+  font-weight:300;
+  font-size:clamp(15px, 1.25vw, 19px);
+  letter-spacing:-0.01em;
+  text-transform:uppercase;
+  transition:font-weight 220ms ease;
+}
+.dw-card-town{
+  display:block;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+@media (hover: hover){
+  /* focus-within keeps it reachable by keyboard, since the cards inside
+     are links and would otherwise be focusable while invisible */
+  .stay-group:hover .stay-group-body,
+  .stay-group:focus-within .stay-group-body{ grid-template-rows:1fr; }
+  .stay-group:hover .stay-name{ font-weight:800; letter-spacing:-0.05em; }
+  .dw-card:hover .dw-card-name{ font-weight:800; }
+}
+@media (hover: none){
+  .stay-group-body{ grid-template-rows:1fr; }
+}
+@media (max-width: 700px){
+  .dw-grid{ grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); margin-left:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .stay-group-body{ transition:none; }
+}

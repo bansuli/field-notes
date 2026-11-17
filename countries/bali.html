@@ -31,6 +31,11 @@
     html{
       scrollbar-width:none;        /* Firefox */
       -ms-overflow-style:none;     /* old Edge */
+      /* touch-only, inert on a pointer device: no grey flash box over a
+         tapped link, and no type inflation when the phone is turned */
+      -webkit-tap-highlight-color:transparent;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
     }
     html::-webkit-scrollbar{ display:none; }   /* Safari / Chrome */
     html, body{ background:var(--paper); height:100%; }
@@ -97,9 +102,13 @@
       color:var(--muted);
     }
 
+    /* phone only */
     @media (max-width: 640px){
+      :root{ --gutter: 22px; }
       .page-head{ padding:8px 12px; }
       .page-label{ font-size:10px; }
+      .back{ padding:10px; }
+      .back svg{ width:28px; height:18px; }
     }
   </style>
 </head>

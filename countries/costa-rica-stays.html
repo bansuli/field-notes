@@ -33,6 +33,11 @@
       overflow-x:hidden;
       scrollbar-width:none;
       -ms-overflow-style:none;
+      /* touch-only, inert on a pointer device: no grey flash box over a
+         tapped link, and no type inflation when the phone is turned */
+      -webkit-tap-highlight-color:transparent;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
     }
     html::-webkit-scrollbar{ display:none; }
     html, body{ background:var(--ground); }
@@ -107,9 +112,25 @@
     }
 
 
+    /* ===== PHONE =====
+       Phone only -- the desktop layout above is untouched. */
     @media (max-width: 640px){
+      :root{ --gutter: 22px; }
       .page-head{ padding:8px 12px; }
       .page-label{ font-size:10px; }
+      .back{ padding:10px; }
+      .back svg{ width:28px; height:18px; }
+
+      /* svh is the viewport with Safari's toolbars showing; plain vh is the
+         toolbar-hidden height, so a 100vh key screen runs on under the
+         browser chrome and the list starts a toolbar's worth too low */
+      .key-screen{ height:100vh; height:100svh; }
+
+      /* The key hangs from the very top of the screen, and on a phone its
+         rope reaches the word: at top:22% the title sat behind the key.
+         16% lifts it clear, and 13vw gives it the presence the 40px clamp
+         floor was taking away at this width. */
+      .section-title{ top:16%; font-size:13vw; }
     }
   </style>
   <script>

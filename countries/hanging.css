@@ -39,11 +39,19 @@
   pointer-events:none;
 }
 
+/* The SVG is deliberately oversized so the rope curve is never clipped by
+   its own box. Horizontally it is pinned to exactly the viewport instead of
+   hanging 50vw off each side: .hanging is position:fixed, so it escapes the
+   overflow-x:hidden on <html>, and that stray 100px past the right edge made
+   a phone widen its layout viewport to fit -- which shrank the whole page and
+   pushed the country label off screen. The rope itself is drawn from pointer
+   positions, so it never reaches past the viewport anyway.
+   Keep in step with overflowX / overflowY in hanging.js draw(). */
 .hanging-rope{
   position:absolute;
-  left:-50vw;
+  left:calc(var(--card-w) / 2 - 50vw);
   top:-50vh;
-  width:calc(var(--card-w) + 100vw);
+  width:100vw;
   height:calc(var(--rope-length) + var(--card-h) + 100vh);
   overflow:visible;
   pointer-events:none;
@@ -80,6 +88,11 @@
 @media (max-width: 1199px){
   .hanging{ --scale:0.82; --rope-length:250px; }
 }
+/* Phone. The key is already far wider relative to the screen than it is on
+   a desktop (43% of the width against 18%), so it does not need to grow --
+   it needs to hang *lower*. A 190px rope left it sitting high and tangled
+   with the title; 230px drops it to roughly the same band of the screen it
+   occupies on desktop, a third of the way down. */
 @media (max-width: 767px){
-  .hanging{ --scale:0.65; --rope-length:190px; }
+  .hanging{ --scale:0.62; --rope-length:230px; }
 }

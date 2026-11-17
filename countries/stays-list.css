@@ -110,9 +110,11 @@
 
 @media (max-width: 700px){
   .stay-row{ grid-template-columns:2.4em 1fr; }
-  .stay-meta{ grid-column:2; text-align:left; margin-top:6px; }
+  .stay-meta{ grid-column:2; text-align:left; margin-top:6px; white-space:normal; }
   .stay-meta span{ display:inline; }
-  .stay-meta .town::after{ content:" \00b7 "; }
+  /* One separator between every pair. A single hand-placed one after the
+     town left the last two running together -- "1 BATHAIRBNB". */
+  .stay-meta span + span::before{ content:"\00b7"; margin:0 0.5em; }
   .stay-photo{ margin-left:0; }
 }
 

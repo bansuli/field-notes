@@ -1,0 +1,85 @@
+/* ===== HANGING CARD =====
+   A card on a rope you can drag; it swings back on release.
+   Geometry ported from the Framer HangingCard component:
+     rope   quadratic curve, sag = min(260, dist*0.35 + ropeLength*0.25)
+     swing  rotate = clamp(dx / (viewportW * 0.28), -1, 1) * 12deg
+     spring stiffness 380, damping 23, mass 1.0  (its "bouncy 50")
+*/
+
+.hanging,
+.hanging *{
+  /* dragging must never paint a text/image selection highlight */
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.hanging{
+  /* each section page sets --obj-w / --obj-h for its own object
+     (key, fork, ...); --scale handles the responsive tiers */
+  --obj-w: 260;
+  --obj-h: 336;
+  --scale: 1;
+  --rope-length: 300px;
+  --rope-width: 2px;
+  --card-w: calc(var(--obj-w) * var(--scale) * 1px);
+  --card-h: calc(var(--obj-h) * var(--scale) * 1px);
+  /* anchored to the very top of the viewport, hanging over the page */
+  position:fixed;
+  left:50%;
+  top:0;
+  margin-left:calc(var(--card-w) / -2);
+  width:var(--card-w);
+  height:calc(var(--rope-length) + var(--card-h));
+  overflow:visible;
+  touch-action:none;
+  z-index:20;
+  /* the frame is a tall box in the middle of the screen; if it caught the
+     pointer it would swallow clicks on the list underneath while fading */
+  pointer-events:none;
+}
+
+.hanging-rope{
+  position:absolute;
+  left:-50vw;
+  top:-50vh;
+  width:calc(var(--card-w) + 100vw);
+  height:calc(var(--rope-length) + var(--card-h) + 100vh);
+  overflow:visible;
+  pointer-events:none;
+}
+
+.hanging-card{
+  position:absolute;
+  left:0;
+  top:var(--rope-length);
+  width:var(--card-w);
+  height:var(--card-h);
+  transform-origin:50% 0%;
+  pointer-events:auto;      /* only the object is grabbable */
+  cursor:grab;
+  touch-action:none;
+  will-change:transform;
+  background:transparent;
+}
+.hanging-card.is-dragging{ cursor:grabbing; }
+
+.hanging-card img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  user-select:none;
+  pointer-events:none;
+  -webkit-user-drag:none;
+}
+
+/* the pin the rope hangs from */
+
+
+@media (max-width: 1199px){
+  .hanging{ --scale:0.82; --rope-length:250px; }
+}
+@media (max-width: 767px){
+  .hanging{ --scale:0.65; --rope-length:190px; }
+}
