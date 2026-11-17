@@ -1,0 +1,271 @@
+<!--
+  BACKUP: Flipbook section removed from index.html on 2026-07-27.
+  Restore by pasting the CSS back into <style>, the HTML back after </header>,
+  and the JS back in as a <script> block before the loader script.
+-->
+
+<!-- ===== CSS (was under /* ===== FLIPBOOK ===== */) ===== -->
+<style>
+    #flipbook-section{
+      position: relative;
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      aspect-ratio: 2880 / 1800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .flipbook{
+      position: relative;
+      width: 62.5%;
+      aspect-ratio: 1800 / 1300;
+      perspective: 2500px;
+    }
+
+    /* base spread sits underneath — this is the NEXT spread */
+    .flipbook .spread-next{
+      position: absolute;
+      inset: 0;
+    }
+    .flipbook .spread-next img{
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* current spread — left half stays, right half flips */
+    .flipbook .spread-left{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .flipbook .spread-left img{
+      display: block;
+      width: 200%;
+      height: 100%;
+      object-fit: contain;
+      object-position: left center;
+    }
+
+    /* current spread — right half stays during backward flip */
+    .flipbook .spread-right{
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+      display: none;
+    }
+    .flipbook .spread-right img{
+      display: block;
+      width: 200%;
+      height: 100%;
+      object-fit: contain;
+      object-position: right center;
+      margin-left: -100%;
+    }
+
+    /* the flipping right page */
+    .flipbook .page{
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 50%;
+      height: 100%;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      z-index: 2;
+    }
+
+    .flipbook .page.is-flipping{
+      transition: transform 900ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    .flipbook .page .face{
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      overflow: hidden;
+    }
+
+    .flipbook .page .front img{
+      display: block;
+      width: 200%;
+      height: 100%;
+      object-fit: contain;
+      object-position: right center;
+      margin-left: -100%;
+    }
+
+    .flipbook .page .back{
+      transform: rotateY(180deg);
+    }
+    .flipbook .page .back img{
+      display: block;
+      width: 200%;
+      height: 100%;
+      object-fit: contain;
+      object-position: left center;
+    }
+</style>
+
+<!-- ===== HTML (was right after </header>, before closing #app) ===== -->
+<section id="flipbook-section">
+  <div class="flipbook" id="flipbook">
+    <div class="spread-next" id="fb-next"><img></div>
+    <div class="spread-left" id="fb-left"><img></div>
+    <div class="spread-right" id="fb-right"><img></div>
+    <div class="page" id="fb-page">
+      <div class="face front"><img></div>
+      <div class="face back"><img></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== JS (was the second <script> block) ===== -->
+<script>
+  (() => {
+    const spreads = [
+      'images/flipbook/SPREAD1.png',
+      'images/flipbook/SPREAD2.png',
+      'images/flipbook/SPREAD3.png',
+      'images/flipbook/SPREAD4.png',
+      'images/flipbook/SPREAD5.png',
+      'images/flipbook/SPREAD6.png',
+    ];
+
+    // preload
+    spreads.forEach(src => { const i = new Image(); i.src = src; });
+
+    const nextEl = document.querySelector('#fb-next img');
+    const leftEl = document.querySelector('#fb-left img');
+    const rightEl = document.querySelector('#fb-right img');
+    const leftDiv = document.getElementById('fb-left');
+    const rightDiv = document.getElementById('fb-right');
+    const page = document.getElementById('fb-page');
+    const frontImg = document.querySelector('#fb-page .front img');
+    const backImg = document.querySelector('#fb-page .back img');
+
+    let current = 0;
+    let flipping = false;
+
+    function showSpread(i){
+      nextEl.src = spreads[i];
+      leftEl.src = spreads[i];
+      rightEl.src = spreads[i];
+      frontImg.src = spreads[i];
+      leftDiv.style.display = '';
+      rightDiv.style.display = 'none';
+      page.style.transform = 'rotateY(0deg)';
+      page.style.left = '';
+      page.style.transformOrigin = '';
+      page.classList.remove('is-flipping');
+      frontImg.style.objectPosition = '';
+      frontImg.style.marginLeft = '';
+      backImg.style.objectPosition = '';
+      backImg.style.marginLeft = '';
+    }
+
+    showSpread(0);
+
+    function flipForward(){
+      if (flipping) return;
+      const next = (current + 1) % spreads.length;
+      flipping = true;
+
+      nextEl.src = spreads[next];
+      leftEl.src = spreads[current];
+      leftDiv.style.display = '';
+      rightDiv.style.display = 'none';
+      frontImg.src = spreads[current];
+      backImg.src = spreads[next];
+
+      page.style.left = '50%';
+      page.style.transformOrigin = 'left center';
+      page.style.transform = 'rotateY(0deg)';
+      page.classList.remove('is-flipping');
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          page.classList.add('is-flipping');
+          page.style.transform = 'rotateY(-180deg)';
+        });
+      });
+
+      page.addEventListener('transitionend', function handler(){
+        page.removeEventListener('transitionend', handler);
+        current = next;
+        flipping = false;
+        showSpread(current);
+      });
+    }
+
+    function flipBackward(){
+      if (flipping) return;
+      const prev = (current - 1 + spreads.length) % spreads.length;
+      flipping = true;
+
+      // underneath: previous spread visible
+      nextEl.src = spreads[prev];
+      // right half stays as current
+      rightEl.src = spreads[current];
+      leftDiv.style.display = 'none';
+      rightDiv.style.display = '';
+      // front of flipping page (left page) = left half of current
+      frontImg.src = spreads[current];
+      // back = left half of previous
+      backImg.src = spreads[prev];
+
+      // page starts on the left, hinged on its right edge
+      page.style.left = '0';
+      page.style.transformOrigin = 'right center';
+      page.style.transform = 'rotateY(0deg)';
+      page.classList.remove('is-flipping');
+
+      // override the image crops for backward flip
+      frontImg.style.objectPosition = 'left center';
+      frontImg.style.marginLeft = '0';
+      backImg.style.objectPosition = 'right center';
+      backImg.style.marginLeft = '-100%';
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          page.classList.add('is-flipping');
+          page.style.transform = 'rotateY(180deg)';
+        });
+      });
+
+      page.addEventListener('transitionend', function handler(){
+        page.removeEventListener('transitionend', handler);
+        current = prev;
+        flipping = false;
+        // reset image styles for forward flip defaults
+        frontImg.style.objectPosition = '';
+        frontImg.style.marginLeft = '';
+        backImg.style.objectPosition = '';
+        backImg.style.marginLeft = '';
+        page.style.left = '';
+        page.style.transformOrigin = '';
+        showSpread(current);
+      });
+    }
+
+    document.getElementById('flipbook-section').addEventListener('click', (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX > rect.width / 2) {
+        flipForward();
+      } else {
+        flipBackward();
+      }
+    });
+  })();
+</script>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Field Notes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="preload" href="images/DSC_3332.jpg" as="image">
+
+  <style>
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    :root{
+      --gs: 1;
+      --ink:black;
+      --muted: rgba(11,11,11,0.62);
+      --hairline: rgba(11,11,11,0.14);
+      --paper:white;
+      --sans:"Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --max: 1560px;
+      --gutter: 34px;
+    }
+
+    /* overflow-x on <body> would make the body its own scroll container,
+       which freezes window.scrollY and kills the hero colour fade.
+       Keep the horizontal clip on <html> only. */
+    html{ overflow-x:hidden; }
+    html, body{ background:var(--paper); }
+    body{
+      font-family:var(--sans);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+    }
+
+    /* ===== HERO ===== */
+    header{
+      padding: 20px 0 0;
+      text-align: center;
+    }
+    .inner{ max-width:var(--max); margin:0 auto; padding:0 var(--gutter); }
+
+    .hero-title{
+      text-indent: -0.05em;
+      font-weight:800;
+      font-size:14vw;
+      line-height:0.7;
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    p{
+      margin:22px auto 12px;
+      max-width:760px;
+      font-size:16px;
+      line-height:1.35;
+      opacity: 1;
+      color: black;
+    }
+
+    .bleed{
+      width:100vw;
+      margin-left:calc(50% - 50vw);
+    }
+    .hero-image{
+      width:100%;
+      height:calc(100vh - 180px);
+      background-image:url("images/DSC_3332.jpg");
+      background-size:cover;
+      background-position:center;
+      filter: brightness(0.9) grayscale(var(--gs));
+      will-change: filter;
+    }
+
+    /* ===== STATS ===== */
+    .stats-section{
+      position:relative;
+      padding: 16px 0 80px;
+    }
+    .bg-flower-wrap,
+    .bg-image-2-wrap,
+    .bg-image-3-wrap,
+    .bg-image-4-wrap,
+    .bg-image-5-wrap,
+    .bg-image-6-wrap,
+    .bg-image-7-wrap{
+      position:absolute;
+      width:425px;
+      height:308px;
+      z-index:-1;
+      pointer-events:none;
+    }
+    .bg-flower-wrap img,
+    .bg-image-2-wrap img,
+    .bg-image-3-wrap img,
+    .bg-image-4-wrap img,
+    .bg-image-5-wrap img,
+    .bg-image-6-wrap img,
+    .bg-image-7-wrap img{
+      display:block;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      pointer-events:none;
+    }
+    .bg-flower-wrap,
+    .bg-image-2-wrap,
+    .bg-image-3-wrap,
+    .bg-image-4-wrap,
+    .bg-image-5-wrap,
+    .bg-image-7-wrap{
+      transition: opacity 450ms ease;
+    }
+    .bg-flower-wrap{ left:838px; top:131px; }
+    .bg-image-2-wrap{ left:57px; top:240px; }
+    .bg-image-3-wrap{ left:565px; top:654px; }
+    .bg-image-4-wrap{ left:444px; top:1127px; }
+    .bg-image-5-wrap{ left:1150px; top:1018px; }
+    .bg-image-6-wrap{ left:360px; top:1928px; }
+    .bg-image-7-wrap{ left:763px; top:1510px; }
+    .stats-row{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      padding:22px 0;
+      border-bottom:1px solid var(--hairline);
+      max-height:420px;
+      overflow:hidden;
+      transition: max-height 600ms ease, opacity 400ms ease, padding 600ms ease, transform 600ms ease;
+    }
+    .stats-row:first-of-type{ border-top:1px solid var(--hairline); }
+    .stats-number{
+      font-weight:800;
+      font-size:13px;
+      line-height:1;
+      letter-spacing:0.06em;
+      white-space:nowrap;
+      flex-shrink:0;
+      transition: font-size 600ms ease;
+    }
+    .stats-number .zero{
+      position:relative;
+      display:inline-block;
+    }
+    .stats-number .zero::after{
+      content:'';
+      position:absolute;
+      top:8%;
+      left:50%;
+      width:9%;
+      height:84%;
+      background:currentColor;
+      transform:translateX(-50%) rotate(18deg);
+    }
+    .stats-country{
+      font-weight:300;
+      font-size:clamp(26px, 2.8vw, 44px);
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      color:var(--ink);
+      transition: font-size 600ms ease;
+    }
+
+    .stats-row{ cursor:pointer; }
+
+    .stats-back{
+      display:inline-block;
+      max-height:0;
+      opacity:0;
+      overflow:hidden;
+      pointer-events:none;
+      transition: opacity 400ms ease 150ms, max-height 400ms ease, margin 400ms ease;
+      margin-bottom:0;
+      background:none;
+      border:none;
+      color:var(--muted);
+      font-family:inherit;
+      font-size:11px;
+      font-weight:500;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      cursor:pointer;
+      padding:0;
+    }
+    .stats-back:hover{ color:var(--ink); }
+
+    .stats-section.is-filtered{
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    .stats-section.is-filtered .inner{
+      max-width:50%;
+      margin-left:0;
+      margin-right:0;
+      box-sizing:border-box;
+    }
+    .stats-section.is-filtered .stats-row.is-selected{
+      flex-wrap:wrap;
+    }
+    .stats-section.is-filtered .stats-row.is-selected .stats-country{
+      min-width:0;
+      overflow-wrap:break-word;
+    }
+    .stats-section.is-filtered .bg-flower-wrap,
+    .stats-section.is-filtered .bg-image-2-wrap,
+    .stats-section.is-filtered .bg-image-3-wrap,
+    .stats-section.is-filtered .bg-image-4-wrap,
+    .stats-section.is-filtered .bg-image-5-wrap,
+    .stats-section.is-filtered .bg-image-7-wrap{
+      opacity:0;
+      pointer-events:none;
+    }
+    .stats-section.is-filtered .stats-back{
+      max-height:60px;
+      opacity:1;
+      pointer-events:auto;
+      margin-bottom:28px;
+    }
+    .stats-section.is-filtered .stats-row:not(.is-selected){
+      max-height:0;
+      opacity:0;
+      padding-top:0;
+      padding-bottom:0;
+      pointer-events:none;
+    }
+    .stats-section.is-filtered .stats-row.is-selected{
+      justify-content:flex-start;
+      cursor:default;
+    }
+    .stats-section.is-filtered .stats-row.is-selected .stats-number{
+      font-size:clamp(54px, 10vw, 176px);
+    }
+    .stats-section.is-filtered .stats-row.is-selected .stats-country{
+      font-size:clamp(30px, 4.2vw, 62px);
+    }
+
+    /* ===== DETAIL LINKS (Eats / Stays / Do's) ===== */
+    .detail-links{
+      display:none;
+      justify-content:flex-start;
+    }
+    .stats-section.is-filtered .detail-links{
+      display:flex;
+    }
+    .detail-links-inner{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:10px;
+      padding:10px 0 40px;
+    }
+    .detail-link{
+      display:inline-block;
+      font-weight:800;
+      font-size:clamp(28px, 5vw, 88px);
+      line-height:0.95;
+      letter-spacing:-0.02em;
+      color:var(--ink);
+      text-decoration:none;
+      white-space:nowrap;
+      min-height:1em;
+    }
+    .detail-link.is-typing::after{
+      content:'';
+      display:inline-block;
+      width:0.55ch;
+      height:0.85em;
+      margin-left:6px;
+      background:var(--ink);
+      vertical-align:-0.1em;
+      animation: cursorBlink 900ms steps(1) infinite;
+    }
+    @keyframes cursorBlink{ 50%{ opacity:0; } }
+
+    @media (prefers-reduced-motion: reduce){
+      #app{ transition: none !important; }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px){
+      .hero-title{
+        font-size: 14.5vw;
+      }
+      p{
+        font-size: 10px;
+        margin: 12px auto 10px;
+      }
+      .hero-image{ height: 56vh; }
+
+      .stats-row{ gap: 12px; padding: 16px 0; }
+      .stats-number{ font-size: 11px; }
+      .stats-country{ font-size: clamp(18px, 5vw, 28px); }
+
+      /* Fixed-px positioned bg images overflow on mobile — hide them */
+      .bg-flower-wrap,
+      .bg-image-2-wrap,
+      .bg-image-3-wrap,
+      .bg-image-4-wrap,
+      .bg-image-5-wrap,
+      .bg-image-6-wrap,
+      .bg-image-7-wrap { display: none; }
+
+      /* Filtered/selected: drop the desktop split-panel, use full width */
+      .stats-section.is-filtered::after { display: none; }
+      .stats-section.is-filtered .inner {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .stats-section.is-filtered .stats-row.is-selected .stats-number { font-size: clamp(54px, 10vw, 176px); }
+      .stats-section.is-filtered .stats-row.is-selected .stats-country { font-size: clamp(26px, 5vw, 62px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <div class="inner">
+        <h1 class="hero-title">FIELD NOTES</h1>
+        <p>a curated archive of stays, eats, and experiences. ongoing...</p>
+      </div>
+      <div class="bleed">
+        <div class="hero-image"></div>
+      </div>
+    </header>
+
+    <section class="stats-section">
+      <div class="bg-flower-wrap" id="bgFlowerWrap">
+        <img src="images/flipbook/SPREAD1.png" alt="">
+      </div>
+      <div class="bg-image-2-wrap" id="bgImage2Wrap">
+        <img src="images/flipbook/SPREAD2.png" alt="">
+      </div>
+      <div class="bg-image-3-wrap" id="bgImage3Wrap">
+        <img src="images/flipbook/SPREAD3.png" alt="">
+      </div>
+      <div class="bg-image-4-wrap" id="bgImage4Wrap">
+        <img src="images/flipbook/SPREAD4.png" alt="">
+      </div>
+      <div class="bg-image-5-wrap" id="bgImage5Wrap">
+        <img src="images/flipbook/SPREAD5.png" alt="">
+      </div>
+      <div class="bg-image-7-wrap" id="bgImage7Wrap">
+        <img src="images/bg-7-final.png" alt="">
+      </div>
+      <div class="inner">
+        <button class="stats-back" id="statsBackBtn" type="button">&larr; Back</button>
+        <div class="stats-row">
+          <span class="stats-number"><span class="zero">0</span><span class="zero">0</span>1</span>
+          <span class="stats-country">Costa Rica</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-number"><span class="zero">0</span><span class="zero">0</span>2</span>
+          <span class="stats-country">Mexico</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-number"><span class="zero">0</span><span class="zero">0</span>3</span>
+          <span class="stats-country">Brazil</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-number"><span class="zero">0</span><span class="zero">0</span>4</span>
+          <span class="stats-country">Indonesia</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-number"><span class="zero">0</span><span class="zero">0</span>5</span>
+          <span class="stats-country">Puerto Rico</span>
+        </div>
+        <div class="detail-links" id="detailLinks">
+          <div class="detail-links-inner">
+            <a href="#eats" class="detail-link" data-text="Eats"></a>
+            <a href="#stays" class="detail-link" data-text="Stays"></a>
+            <a href="#dos" class="detail-link" data-text="Do's"></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- end #app -->
+
+  <script>
+    if (history.scrollRestoration) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+
+    function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+
+    const heroEl = document.querySelector('.hero-image');
+
+    function updateHeroColor(){
+      if (!heroEl) return;
+      /* fade across most of the hero's own height so the colour arrives
+         gradually as the image scrolls away, not in one wheel notch */
+      const fadeDistance = Math.max(heroEl.offsetHeight * 0.75, 200);
+      const progress = clamp(window.scrollY / fadeDistance, 0, 1);
+      const gs = (1 - progress).toFixed(3);
+      document.documentElement.style.setProperty('--gs', gs);
+      /* set it on the element too: Safari does not always repaint a
+         filter() that reads a custom property */
+      heroEl.style.filter = 'brightness(0.9) grayscale(' + gs + ')';
+    }
+
+    updateHeroColor();
+    window.addEventListener('scroll', () => requestAnimationFrame(updateHeroColor), { passive: true });
+    window.addEventListener('resize', updateHeroColor);
+    window.addEventListener('load', updateHeroColor);
+  </script>
+
+  <script>
+    (() => {
+      const section = document.querySelector('.stats-section');
+      const rows = [...section.querySelectorAll('.stats-row')];
+      const backBtn = document.getElementById('statsBackBtn');
+      const detailLinks = [...document.querySelectorAll('.detail-link')];
+      let typeTimer = null;
+
+      function resetDetailLinks(){
+        clearTimeout(typeTimer);
+        detailLinks.forEach(el => {
+          el.textContent = '';
+          el.classList.remove('is-typing');
+        });
+      }
+
+      function typeLine(el, text, onDone){
+        el.classList.add('is-typing');
+        let i = 0;
+        (function tick(){
+          el.textContent = text.slice(0, i);
+          i++;
+          if (i <= text.length) {
+            typeTimer = setTimeout(tick, 45);
+          } else {
+            el.classList.remove('is-typing');
+            onDone();
+          }
+        })();
+      }
+
+      function typeAllLines(){
+        resetDetailLinks();
+        let idx = 0;
+        (function next(){
+          if (idx >= detailLinks.length) return;
+          const el = detailLinks[idx];
+          idx++;
+          typeTimer = setTimeout(() => {
+            typeLine(el, el.dataset.text, next);
+          }, idx === 1 ? 0 : 150);
+        })();
+      }
+
+      rows.forEach(row => {
+        row.addEventListener('click', () => {
+          rows.forEach(r => r.classList.toggle('is-selected', r === row));
+          section.classList.add('is-filtered');
+          resetDetailLinks();
+          typeTimer = setTimeout(typeAllLines, 650);
+        });
+      });
+
+      backBtn.addEventListener('click', () => {
+        section.classList.remove('is-filtered');
+        rows.forEach(r => r.classList.remove('is-selected'));
+        resetDetailLinks();
+      });
+    })();
+  </script>
+</body>
+</html>

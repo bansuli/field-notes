@@ -1,0 +1,101 @@
+[
+ {
+  "name": "Jaspis",
+  "town": "Uvita",
+  "size": "1 bedroom · 1 bed · 1 bath",
+  "photo": "../images/stays/jaspis.jpg",
+  "w": 1280,
+  "h": 852,
+  "url": "https://www.airbnb.com/rooms/663572730629710624",
+  "listing_title": "Jaspis - Achiote Design Villas",
+  "source": "Airbnb"
+ },
+ {
+  "name": "Nefrit",
+  "town": "Uvita",
+  "size": "1 bedroom · 1 bed · 1 bath",
+  "photo": "../images/stays/nefrit.jpg",
+  "w": 1280,
+  "h": 852,
+  "url": "https://www.airbnb.com/rooms/663501949917547867",
+  "listing_title": "Nefrit - Achiote Design Villas",
+  "source": "Airbnb"
+ },
+ {
+  "name": "Seataya",
+  "town": "Santa Teresa",
+  "size": "4 bedrooms · 4 beds · 4 baths",
+  "photo": "../images/stays/seataya.jpg",
+  "w": 1280,
+  "h": 960,
+  "url": "https://www.airbnb.com/rooms/52906424",
+  "listing_title": "Seataya Luxury Ocean View Villa with Infinity Pool",
+  "source": "Airbnb"
+ },
+ {
+  "name": "Amoi Villa R",
+  "town": "Santa Teresa",
+  "size": "2 bedrooms · 2 beds · 2 baths",
+  "photo": "../images/stays/amoi.jpg",
+  "w": 1280,
+  "h": 852,
+  "url": "https://www.airbnb.com/rooms/21319140",
+  "listing_title": "AMOI Villa 'R' - walk to beach",
+  "source": "Airbnb"
+ },
+ {
+  "name": "The Nëst",
+  "town": "Santa Teresa",
+  "size": "2 bedrooms · 2 beds · 2 baths",
+  "photo": "../images/stays/nest.jpg",
+  "w": 1280,
+  "h": 851,
+  "url": "https://www.airbnb.com/rooms/788215072771814802",
+  "listing_title": "2BR Villa in The Nëst Treelodge |Sauna|Cold-plunge",
+  "source": "Airbnb"
+ },
+ {
+  "name": "Villa Alma",
+  "town": "Santa Teresa",
+  "size": "1 bedroom · 1 bed · 1 bath",
+  "photo": "../images/stays/alma.jpg",
+  "w": 1280,
+  "h": 854,
+  "url": "https://www.airbnb.com/rooms/42041651",
+  "listing_title": "Villa Alma with Ocean Jungle Views, Thea Resort",
+  "source": "Airbnb"
+ },
+ {
+  "name": "Villa Shemesh",
+  "town": "Santa Teresa",
+  "size": "3 bedrooms · 3 beds · 3 baths",
+  "photo": "../images/stays/shemesh.jpg",
+  "w": 1280,
+  "h": 852,
+  "url": "https://www.airbnb.com/rooms/1290146508014916552",
+  "listing_title": "Villa Shemesh -Jungle ocean view",
+  "source": "Airbnb"
+ },
+ {
+  "name": "Villa Oasis",
+  "town": "Santa Teresa",
+  "size": "1 bedroom · 1 bed · 1.5 baths",
+  "photo": "../images/stays/oasis.jpg",
+  "w": 1280,
+  "h": 852,
+  "url": "https://www.airbnb.com/rooms/1050893676339263734",
+  "listing_title": "Chic Villa Oasis in Central Santa Teresa",
+  "source": "Airbnb"
+ },
+ {
+  "name": "The Bungalow",
+  "town": "Playa Hermosa",
+  "size": "1 bedroom · 1 bed · 1 bath",
+  "photo": "../images/stays/bungalow.jpg",
+  "w": 1280,
+  "h": 720,
+  "url": "https://www.airbnb.com/rooms/51385867",
+  "listing_title": "Watch the waves from bed. Breakfast included!",
+  "source": "Airbnb"
+ }
+]

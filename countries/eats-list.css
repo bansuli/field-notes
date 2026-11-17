@@ -1,0 +1,124 @@
+/* ===== EATS LIST =====
+   A taller row than the stays list, because an eat carries a
+   recommendation, not just a link: the dish and the blurb read at a
+   glance, and the photo is the reward for hovering.
+*/
+
+.eats{
+  position:relative;
+  z-index:10;
+  padding:clamp(74px, 9vh, 104px) var(--gutter) 14vh;
+  min-height:100vh;          /* guarantees scroll for the object screen to clear */
+  max-width:1180px;
+  margin:0 auto;
+}
+
+.eats-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.eat{
+  display:block;
+  padding:clamp(18px, 2.2vw, 30px) 0;
+  border-bottom:1px solid var(--hairline);
+  text-decoration:none;
+  color:var(--ink);
+}
+
+.eat-head{
+  display:grid;
+  grid-template-columns:3.2em 1fr auto;
+  align-items:baseline;
+  gap:clamp(14px, 2.4vw, 40px);
+}
+
+.eat-index{
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.12em;
+  color:var(--muted);
+}
+
+.eat-name{
+  font-weight:300;
+  font-size:clamp(24px, 3.2vw, 48px);
+  line-height:0.95;
+  letter-spacing:-0.02em;
+  text-transform:uppercase;
+  transition:font-weight 260ms ease, letter-spacing 260ms ease;
+}
+
+.eat-meta{
+  text-align:right;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  white-space:nowrap;
+}
+.eat-meta span{ display:block; }
+.eat-meta .town{ color:var(--ink); }
+
+/* the recommendation itself, always readable without hovering */
+.eat-body{
+  margin-left:calc(3.2em + clamp(14px, 2.4vw, 40px));
+  margin-top:clamp(10px, 1.2vw, 16px);
+  max-width:54ch;
+}
+.eat-dish{
+  display:block;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--ink);
+}
+.eat-dish em{ font-style:normal; color:var(--muted); }
+.eat-blurb{
+  display:block;
+  margin-top:7px;
+  font-size:clamp(14px, 1.05vw, 16px);
+  line-height:1.5;
+  color:var(--muted);
+}
+
+/* photo opens to its own height, uncropped, same as the stays rows */
+.eat-photo{
+  display:grid;
+  grid-template-rows:0fr;
+  margin-left:calc(3.2em + clamp(14px, 2.4vw, 40px));
+  transition:grid-template-rows 460ms cubic-bezier(0.65,0,0.35,1),
+             margin-top 460ms cubic-bezier(0.65,0,0.35,1);
+}
+.eat-photo > span{ overflow:hidden; min-height:0; }
+.eat-photo img{ display:block; width:min(600px, 100%); height:auto; }
+
+@media (hover: hover){
+  .eat:hover .eat-name{ font-weight:800; letter-spacing:-0.05em; }
+  .eat:hover .eat-photo,
+  .eat:focus-visible .eat-photo{
+    grid-template-rows:1fr;
+    margin-top:clamp(16px, 2vw, 24px);
+  }
+}
+@media (hover: none){
+  .eat-photo{ grid-template-rows:1fr; margin-top:16px; }
+  .eat-name{ font-weight:800; letter-spacing:-0.05em; }
+}
+
+@media (max-width: 700px){
+  .eat-head{ grid-template-columns:2.4em 1fr; }
+  .eat-meta{ grid-column:2; text-align:left; margin-top:6px; }
+  .eat-meta span{ display:inline; }
+  .eat-meta .town::after{ content:" \00b7 "; }
+  .eat-body, .eat-photo{ margin-left:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .eat-photo{ transition:none; }
+}

@@ -1,0 +1,16 @@
+[
+ {
+  "name": "Manzana de Java",
+  "town": "Santurce",
+  "area": "Machuchal",
+  "lat": 18.4511105,
+  "lon": -66.0582275,
+  "url": "https://www.google.com/maps/place/Manzana+de+Java/@18.4511105,-66.0582275,17z",
+  "source": "Google Maps",
+  "dish": "PLACEHOLDER — the dish worth ordering",
+  "blurb": "PLACEHOLDER — the vibe of the place, what it serves, why you'd go.",
+  "photo": "../images/eats-pr/manzana-de-java.jpg",
+  "w": 1280,
+  "h": 966
+ }
+]

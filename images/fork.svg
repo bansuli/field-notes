@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 420" width="104" height="420">
+  <g fill="#000000">
+    <!-- four tines, evenly spaced: 18 wide, 8 apart, spanning x 4..100 -->
+    <rect x="4"  y="0" width="18" height="98"/>
+    <rect x="30" y="0" width="18" height="98"/>
+    <rect x="56" y="0" width="18" height="98"/>
+    <rect x="82" y="0" width="18" height="98"/>
+    <!-- shoulder gathering into the neck, then the handle -->
+    <path d="M4 86
+             H100
+             V148
+             C100 172 68 176 68 198
+             V396
+             C68 410 61 418 52 418
+             C43 418 36 410 36 396
+             V198
+             C36 176 4 172 4 148
+             Z"/>
+  </g>
+</svg>

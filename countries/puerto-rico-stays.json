@@ -1,0 +1,160 @@
+[
+ {
+  "kind": "stay",
+  "name": "Seaglass Loft",
+  "town": "Vieques",
+  "size": "3 bedrooms",
+  "url": "https://www.airbnb.com/rooms/1352073509879925711",
+  "source": "Airbnb",
+  "photo": "../images/stays-pr/seaglass.jpg",
+  "w": 1280,
+  "h": 852
+ },
+ {
+  "kind": "stay",
+  "name": "Villa Piedra",
+  "town": "Rincón",
+  "size": "4 bedrooms",
+  "url": "https://www.airbnb.com/rooms/1325434867111594414",
+  "source": "Airbnb",
+  "photo": "../images/stays-pr/piedra.jpg",
+  "w": 1280,
+  "h": 1510
+ },
+ {
+  "kind": "group",
+  "name": "Dreamers Welcome",
+  "town": "San Juan + Rainforest",
+  "size": "14 properties",
+  "url": "https://dreamerswelcome.com/",
+  "source": "Dreamers Welcome",
+  "children": [
+   {
+    "name": "APT",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/apt",
+    "photo": "../images/stays-pr/dw-apt.jpg",
+    "w": 720,
+    "h": 470
+   },
+   {
+    "name": "Casa Frida",
+    "town": "San Juan",
+    "size": "House",
+    "url": "https://dreamerswelcome.com/casa-frida",
+    "photo": "../images/stays-pr/dw-casa-frida.jpg",
+    "w": 720,
+    "h": 540
+   },
+   {
+    "name": "DaDa JaJa",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/dadajaja",
+    "photo": "../images/stays-pr/dw-dadajaja.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Dreamcatcher",
+    "town": "San Juan",
+    "size": "Hotel",
+    "url": "https://dreamerswelcome.com/dreamcatcher",
+    "photo": "../images/stays-pr/dw-dreamcatcher.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Duna",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/duna",
+    "photo": "../images/stays-pr/dw-duna.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Maru",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/maru",
+    "photo": "../images/stays-pr/dw-maru.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Mood Haus",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/moodhaus",
+    "photo": "../images/stays-pr/dw-moodhaus.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Noa",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/noa",
+    "photo": "../images/stays-pr/dw-noa.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Paz",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/paz",
+    "photo": "../images/stays-pr/dw-paz.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Rosa",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/rosa",
+    "photo": "../images/stays-pr/dw-rosa.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Selva",
+    "town": "Luquillo",
+    "size": "House",
+    "url": "https://dreamerswelcome.com/selva",
+    "photo": "../images/stays-pr/dw-selva.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Tropicalia",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/tropicalia",
+    "photo": "../images/stays-pr/dw-tropicalia.jpg",
+    "w": 720,
+    "h": 480
+   },
+   {
+    "name": "Verde",
+    "town": "San Juan",
+    "size": "Suites",
+    "url": "https://dreamerswelcome.com/verde",
+    "photo": "../images/stays-pr/dw-verde.jpg",
+    "w": 720,
+    "h": 543
+   },
+   {
+    "name": "Wald Haus",
+    "town": "Naguabo",
+    "size": "House",
+    "url": "https://dreamerswelcome.com/waldhaus",
+    "photo": "../images/stays-pr/dw-waldhaus.jpg",
+    "w": 720,
+    "h": 404
+   }
+  ]
+ }
+]

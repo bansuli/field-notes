@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Field Notes — Experiment</title>
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+
+  <style>
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    :root{
+      --gs: 1;
+      --ink:black;
+      --muted: rgba(11,11,11,0.62);
+      --hairline: rgba(11,11,11,0.14);
+      --paper:white;
+      --sans:"Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+      /* wider content like your reference */
+      --max: 1560px;              /* was 1200 */
+      --gutter: 34px;             /* side padding for sections */
+    }
+
+
+    html, body{ height:100%; background:var(--paper); }
+    body{
+      font-family:var(--sans);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+    }
+
+    /* ===== HERO ===== */
+    header{
+  padding: 20px 0 0;
+  text-align: center;
+}
+    .inner{ max-width:var(--max); margin:0 auto; padding:0 var(--gutter); }
+
+    .hero-title{
+      text-indent: -0.05em; /* pulls it back left to optically center */
+      font-weight:800;
+      font-size:14vw;
+      line-height:0.7;
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    p{
+  margin:6px auto 12px;   /* tighter */
+  max-width:760px;
+  font-size:16px;
+  line-height:1.35;
+  opacity: 1;  /* was .6 */
+  color: black;
+}
+
+    .bleed{
+      width:100vw;
+      margin-left:calc(50% - 50vw);
+    }
+   .hero-image{
+  width:100%;
+  height:calc(100vh - 180px);
+  background-image:url("images/DSC_3332.jpg");
+  background-size:cover;
+  background-position:center;
+
+  /* ✅ combine everything into ONE filter */
+    filter: brightness(0.9) grayscale(var(--gs));
+    will-change: filter;
+}
+
+
+    /* ===== GRID (wider, less side space) ===== */
+    .grid{
+      padding:22px var(--gutter) 90px;
+      background:var(--paper);
+    }
+    .grid-inner{ max-width:var(--max); margin:0 auto; }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:22px;
+    }
+
+ .card{
+  display:flex;
+  flex-direction:column;
+  text-decoration:none;
+  color:var(--ink);
+}
+
+
+  .card-media{
+  width:100%;
+  aspect-ratio:16 / 10;
+  background-size:cover;
+  background-position:center;
+}
+
+
+    .card-body{
+  padding:18px 0 30px;  /* remove side padding */
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+
+    .card-topline{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      font-size:12px;
+      opacity:.55;
+    }
+
+    .card-title{
+      font-size:30px;
+      font-weight:500;
+      letter-spacing:0.01em;
+      line-height:1.05;
+    }
+
+    .card-loc{
+      font-size:13px;
+      opacity:.7;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .pin{ width:12px; height:12px; display:inline-block; }
+    .pin svg{ width:12px; height:12px; display:block; }
+
+    .card:hover{
+      transform: translateY(-1px);
+      transition: transform 180ms ease;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px){
+      :root{ --max: 1200px; --gutter: 22px; }
+      .filter-link{ font-size:13px; }
+    }
+    @media (max-width: 980px){
+      .cards{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      header{ padding:24px 18px 0; }
+      .filters, .grid{ padding-left:18px; padding-right:18px; }
+      .filters-inner{ gap:22px; }
+    }
+    @media (max-width: 640px){
+      .cards{ grid-template-columns:1fr; }
+      .hero-image{ height:56vh; }
+      .filter-link{ font-size:12px; letter-spacing:0.18em; }
+    }
+    /* ===== LOADER ===== */
+    #loader{
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      z-index: 9999;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      transform: translateY(0);
+      transition: transform 1400ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    #loader-count{
+      font-family: inherit;
+      font-size: 18px;
+      color: #111;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-align: center;
+    }
+
+    /* app starts hidden */
+    #app{
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 700ms ease, transform 700ms ease;
+    }
+
+    /* when loaded: swipe loader up + reveal app */
+    body.is-loaded #loader{
+      transform: translateY(-100%);
+    }
+
+    body.is-loaded #app{
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      #loader, #app{ transition: none !important; }
+    }
+    /* ===== BIG COUNTRY LIST ===== */
+.countries-list{
+  padding: 32px 0 120px;  /* closer to toggle */
+  text-align: center;
+}
+
+.countries-inner{
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.countries-list a{
+  display: block;
+  width: 100%;
+  text-align: center;
+
+  font-family: inherit;
+  font-weight: 800;
+  font-size: clamp(36px, 5.2vw, 78px);
+  line-height: 0.9;          /* tighter */
+  letter-spacing: -0.02em;   /* makes it feel "designed" */
+  text-transform: uppercase;
+
+  color: #000;
+  text-decoration: none;
+  margin: 0;
+  padding: 0;
+}
+
+.countries-list a:hover{
+  opacity: 0.7;
+}
+/* ===== VIEW TOGGLE (List // Gallery) ===== */
+.view-toggle{
+  position: sticky;
+  top: 14px;          /* where it sticks when scrolling */
+  z-index: 999;
+  background: transparent;
+  margin: 80px 0 60px; /* THIS controls where it sits between image + list */
+}
+
+.view-inner{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+}
+
+.view-toggle a{
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  color: #000;
+  text-decoration: none;
+  opacity: 0.5;
+  transition: opacity 180ms ease;
+
+}
+
+
+
+.view-toggle a.is-active{ opacity: 1; }
+
+.view-toggle span{
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0;
+  color: #000;
+  opacity: 1;
+  user-select: none;
+}
+  /* ===== CONVEYOR BELT GALLERY ===== */
+  .belt-section {
+    padding: 100px 0 120px; /* extra room for the -2deg tilt */
+    overflow: hidden;
+  }
+  .belt-rotated {
+    transform: rotate(-2deg);
+  }
+  .belt-track {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    will-change: transform;
+    flex-wrap: nowrap;
+  }
+  .belt-track--slow {
+    margin-top: 14px;
+  }
+  .belt-item {
+    position: relative;
+    flex-shrink: 0;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .belt-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .belt-caption {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    white-space: nowrap;
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 220ms ease, transform 220ms ease;
+    pointer-events: none;
+  }
+  .belt-item:hover .belt-caption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  </style>
+</head>
+
+<body>
+  <!-- LOADER -->
+  <div id="loader">
+    <div id="loader-count">(0)</div>
+  </div>
+
+  <div id="app">
+    <header>
+      <div class="inner">
+        <h1 class="hero-title">FIELD NOTES</h1>
+        <p>a curated archive of stays, eats, and experiences. ongoing...</p>
+      </div>
+      <div class="bleed">
+        <div class="hero-image"></div>
+      </div>
+  </header>
+  <section class="view-toggle">
+    <div class="view-inner">
+      <a href="#countries">List</a>
+      <span>//</span>
+      <a href="#gallery">Gallery</a>
+    </div>
+  </section>
+
+  <!-- TOP "COUNTRY" FILTERS -->
+  <section id="countries" class="countries-list">
+  <div class="countries-inner">
+    <a href="countries/jordan.html">JORDAN</a>
+    <a href="countries/costa-rica.html">COSTA RICA</a>
+    <a href="countries/lebanon.html">LEBANON</a>
+    <a href="countries/mexico.html">MEXICO</a>
+    <a href="countries/brazil.html">BRAZIL</a>
+    <a href="countries/indonesia.html">INDONESIA</a>
+    <a href="countries/france.html">FRANCE</a>
+    <a href="countries/usa.html">USA</a>
+  </div>
+</section>
+
+  <!-- CONVEYOR BELT GALLERY — EXPERIMENT -->
+  <section id="gallery" class="belt-section bleed">
+    <div class="belt-rotated">
+
+      <!-- ROW 1 · fast · alternating very wide/short ↔ very tall/narrow -->
+      <div id="beltTrack" class="belt-track">
+
+        <a class="belt-item" href="countries/jordan.html" style="width:520px;height:155px">
+          <img class="belt-img" src="images/jordan.JPG" alt="Jordan">
+          <div class="belt-caption">Jordan · Amman</div>
+        </a>
+
+        <a class="belt-item" href="countries/costa-rica.html" style="width:155px;height:350px">
+          <img class="belt-img" src="images/costarica.JPG" alt="Costa Rica">
+          <div class="belt-caption">Costa Rica · Santa Teresa</div>
+        </a>
+
+        <a class="belt-item" href="countries/lebanon.html" style="width:470px;height:160px">
+          <img class="belt-img" src="images/lebanon.jpg" alt="Lebanon">
+          <div class="belt-caption">Lebanon · Beirut</div>
+        </a>
+
+        <a class="belt-item" href="countries/mexico.html" style="width:165px;height:330px">
+          <img class="belt-img" src="images/mexico.jpg" alt="Mexico">
+          <div class="belt-caption">Mexico · Mexico City · Puerto Escondido · Punta Mita</div>
+        </a>
+
+        <a class="belt-item" href="countries/brazil.html" style="width:580px;height:145px">
+          <img class="belt-img" src="images/brazil.jpg" alt="Brazil">
+          <div class="belt-caption">Brazil · Rio · São Paulo · Fernando de Noronha</div>
+        </a>
+
+        <a class="belt-item" href="countries/indonesia.html" style="width:160px;height:370px">
+          <img class="belt-img" src="images/bali.jpg" alt="Indonesia">
+          <div class="belt-caption">Indonesia · Bali</div>
+        </a>
+
+        <a class="belt-item" href="countries/france.html" style="width:440px;height:165px">
+          <img class="belt-img" src="images/france.jpeg" alt="France">
+          <div class="belt-caption">France · South of France · Paris</div>
+        </a>
+
+        <a class="belt-item" href="countries/usa.html" style="width:175px;height:310px">
+          <img class="belt-img" src="images/usa.jpg" alt="USA">
+          <div class="belt-caption">USA · Arizona · New York · Los Angeles</div>
+        </a>
+
+      </div>
+
+      <!-- ROW 2 · slow · same images, shifted order, inverted size pattern -->
+      <div id="beltTrack2" class="belt-track belt-track--slow">
+
+        <a class="belt-item" href="countries/indonesia.html" style="width:170px;height:360px">
+          <img class="belt-img" src="images/bali.jpg" alt="Indonesia">
+          <div class="belt-caption">Indonesia · Bali</div>
+        </a>
+
+        <a class="belt-item" href="countries/france.html" style="width:500px;height:150px">
+          <img class="belt-img" src="images/france.jpeg" alt="France">
+          <div class="belt-caption">France · South of France · Paris</div>
+        </a>
+
+        <a class="belt-item" href="countries/usa.html" style="width:180px;height:340px">
+          <img class="belt-img" src="images/usa.jpg" alt="USA">
+          <div class="belt-caption">USA · Arizona · New York · Los Angeles</div>
+        </a>
+
+        <a class="belt-item" href="countries/jordan.html" style="width:540px;height:148px">
+          <img class="belt-img" src="images/jordan.JPG" alt="Jordan">
+          <div class="belt-caption">Jordan · Amman</div>
+        </a>
+
+        <a class="belt-item" href="countries/costa-rica.html" style="width:175px;height:355px">
+          <img class="belt-img" src="images/costarica.JPG" alt="Costa Rica">
+          <div class="belt-caption">Costa Rica · Santa Teresa</div>
+        </a>
+
+        <a class="belt-item" href="countries/lebanon.html" style="width:510px;height:152px">
+          <img class="belt-img" src="images/lebanon.jpg" alt="Lebanon">
+          <div class="belt-caption">Lebanon · Beirut</div>
+        </a>
+
+        <a class="belt-item" href="countries/mexico.html" style="width:170px;height:345px">
+          <img class="belt-img" src="images/mexico.jpg" alt="Mexico">
+          <div class="belt-caption">Mexico · Mexico City · Puerto Escondido · Punta Mita</div>
+        </a>
+
+        <a class="belt-item" href="countries/brazil.html" style="width:560px;height:145px">
+          <img class="belt-img" src="images/brazil.jpg" alt="Brazil">
+          <div class="belt-caption">Brazil · Rio · São Paulo · Fernando de Noronha</div>
+        </a>
+
+      </div>
+
+    </div>
+  </section>
+  <script>
+    if (history.scrollRestoration) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+
+  function clamp(n, min, max){
+    return Math.min(max, Math.max(min, n));
+  }
+
+  function updateHeroColor(){
+   const fadeDistance = 120;
+    const scrollY = window.scrollY;
+
+    const progress = clamp(scrollY / fadeDistance, 0, 1);
+    const grayscaleValue = 1 - progress;
+
+    document.documentElement
+      .style
+      .setProperty('--gs', grayscaleValue.toFixed(3));
+  }
+
+  updateHeroColor();
+
+  window.addEventListener('scroll', () => {
+    requestAnimationFrame(updateHeroColor);
+  }, { passive: true });
+
+  window.addEventListener('resize', updateHeroColor);
+</script>
+</div> <!-- end #app -->
+<script>
+(() => {
+  const duration = 1400; // faster
+  const loader = document.getElementById('loader');
+  const countEl = document.getElementById('loader-count');
+
+  const start = performance.now();
+
+  function tick(now){
+    const t = Math.min(1, (now - start) / duration);
+    const value = Math.floor(t * 100);
+    countEl.textContent = `(${value})`;
+
+    if (t < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      countEl.textContent = `(100)`;
+      setTimeout(() => {
+        document.body.classList.add('is-loaded');
+        setTimeout(() => loader.remove(), 900);
+      }, 20);
+    }
+  }
+
+  requestAnimationFrame(tick);
+})();
+
+  (() => {
+    const linkList = document.querySelector('.view-toggle a[href="#countries"]');
+    const linkGallery = document.querySelector('.view-toggle a[href="#gallery"]');
+    const secCountries = document.getElementById('countries');
+    const secGallery = document.getElementById('gallery');
+
+    if (!linkList || !linkGallery || !secCountries || !secGallery) return;
+
+    function setActive(which){
+      linkList.classList.toggle('is-active', which === 'countries');
+      linkGallery.classList.toggle('is-active', which === 'gallery');
+    }
+
+    setActive('countries');
+
+    const io = new IntersectionObserver((entries) => {
+      let best = null;
+      for (const e of entries){
+        if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+      }
+      if (!best) return;
+
+      if (best.target.id === 'countries') setActive('countries');
+      if (best.target.id === 'gallery') setActive('gallery');
+    }, { threshold: [0.2, 0.35, 0.5, 0.65] });
+
+    io.observe(secCountries);
+    io.observe(secGallery);
+  })();
+</script>
+<script>
+// ===== CONVEYOR BELT — dual-row factory =====
+function makeBelt(trackEl, wrap, normalSpeed, slowSpeed) {
+  const GAP = 14; // must match CSS gap
+
+  // Duplicate items for seamless infinite loop
+  const originals = [...trackEl.children];
+  originals.forEach(item => {
+    const clone = item.cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    trackEl.appendChild(clone);
+  });
+
+  let totalWidth = 0;
+  let pos        = 0;
+  let speed      = normalSpeed;
+  let target     = normalSpeed;
+
+  wrap.addEventListener('mouseenter', () => { target = slowSpeed; });
+  wrap.addEventListener('mouseleave', () => { target = normalSpeed; });
+
+  function measure() {
+    totalWidth = originals.reduce((s, el) => s + el.offsetWidth + GAP, 0);
+  }
+
+  function tick() {
+    speed += (target - speed) * 0.05;
+    pos   += speed;
+    if (totalWidth > 0 && pos >= totalWidth) pos -= totalWidth;
+    trackEl.style.transform = `translateX(-${pos}px)`;
+    requestAnimationFrame(tick);
+  }
+
+  // Two rAF ticks to ensure flex layout is fully resolved before measuring
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      measure();
+      tick();
+      window.addEventListener('resize', measure, { passive: true });
+    });
+  });
+}
+
+const wrap = document.getElementById('gallery');
+makeBelt(document.getElementById('beltTrack'),  wrap, 0.8, 0.2);
+makeBelt(document.getElementById('beltTrack2'), wrap, 0.4, 0.1);
+</script>
+</body>
+</html>

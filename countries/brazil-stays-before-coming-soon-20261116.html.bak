@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stays &mdash; Brazil &mdash; Field Notes</title>
+  <link rel="icon" href="data:,">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="hanging.css">
+
+  <style>
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    :root{
+      --ink:black;
+      --muted: rgba(11,11,11,0.62);
+      --hairline: rgba(11,11,11,0.14);
+      --paper:white;
+      --ground:#C9CBBE;
+      --sans:"Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --gutter: 34px;
+    }
+    html{
+      overflow-x:hidden;
+      scrollbar-width:none;
+      -ms-overflow-style:none;
+    }
+    html::-webkit-scrollbar{ display:none; }
+    /* the STAYS panel colour this page is entered from */
+    html, body{ background:var(--ground); }
+    body{
+      font-family:var(--sans);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+      min-height:100vh;
+    }
+    a{ color:inherit; text-decoration:none; }
+
+    .page-head{
+      position:fixed;
+      top:0; left:0; right:0;
+      z-index:50;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px var(--gutter);
+      color:#8c8c8c;
+      mix-blend-mode:difference;
+      pointer-events:none;
+    }
+    .page-head a{ pointer-events:auto; }
+    /* over a scrolling list, difference-blending against moving text is
+       unreadable -- go solid so content passes cleanly underneath */
+    .page-head.is-solid{
+      mix-blend-mode:normal;
+      background:var(--ground);
+      color:var(--muted);
+    }
+    .back{
+      display:inline-flex;
+      align-items:center;
+      color:inherit;
+      padding:12px;
+      transition:color 300ms ease;
+    }
+    .back svg{ display:block; width:34px; height:21px; }
+    .back:hover{ color:#ffffff; }
+    .page-label{
+      user-select:none;
+      -webkit-user-select:none;
+      padding:12px;
+      font-size:12px;
+      font-weight:500;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+    }
+
+    /* the word arrives here from the panel. Thin, centred in the page --
+       stack.js animates the flying clone to exactly this weight and place. */
+    .section-title{
+      pointer-events:none;   /* fixed and centred; must never catch a click */
+      position:fixed;
+      /* high enough that the hanging key does not cover it */
+      top:22%;
+      left:0;
+      width:100%;
+      transform:translateY(-50%);
+      text-align:center;
+      font-weight:800;
+      font-size:clamp(40px, 9vw, 180px);
+      line-height:0.85;
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+      user-select:none;
+      -webkit-user-select:none;
+    }
+
+
+    @media (max-width: 640px){
+      .page-head{ padding:8px 12px; }
+      .page-label{ font-size:10px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="page-head">
+    <a class="back" href="brazil.html" aria-label="Back to Brazil">
+      <svg viewBox="0 0 34 21" aria-hidden="true">
+        <path d="M34 10.5H3M12.5 2L3 10.5l9.5 8.5" fill="none" stroke="currentColor" stroke-width="3"/>
+      </svg>
+    </a>
+    <span class="page-label">Brazil</span>
+  </header>
+
+  <h1 class="section-title">Stays</h1>
+
+  <div class="hanging" style="--obj-w:260; --obj-h:336">
+    <svg class="hanging-rope" aria-hidden="true">
+      <path d="" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div class="hanging-card">
+      <img src="../images/key.png" alt="" draggable="false">
+    </div>
+  </div>
+
+  <script src="hanging.js"></script>
+</body>
+</html>

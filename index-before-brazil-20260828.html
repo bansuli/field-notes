@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Field Notes</title>
+  <!-- Declared explicitly so the browser cannot fall back to whatever
+       favicon it has cached for the localhost origin. -->
+  <link rel="icon" href="data:,">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="preload" href="images/DSC_3332.jpg" as="image">
+
+  <style>
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    :root{
+      --gs: 1;
+      --ink:black;
+      --muted: rgba(11,11,11,0.62);
+      --faded: rgba(11,11,11,0.20);
+      --panel: rgba(11,11,11,0.055);
+      --hairline: rgba(11,11,11,0.14);
+      --paper:white;
+      --sans:"Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --max: 1560px;
+      --gutter: 34px;
+    }
+
+    /* overflow-x on <body> would make the body its own scroll container,
+       which freezes window.scrollY and kills the hero colour fade.
+       Keep the horizontal clip on <html> only. */
+    html{
+      overflow-x:hidden;
+      /* proximity, not mandatory: mandatory would yank past the hero and
+         skip its grayscale-to-colour fade entirely */
+      scroll-snap-type:y proximity;
+      scrollbar-width:none;        /* Firefox */
+      -ms-overflow-style:none;     /* old Edge */
+    }
+    html::-webkit-scrollbar{ display:none; }   /* Safari / Chrome */
+    html, body{ background:var(--paper); }
+    body{
+      font-family:var(--sans);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+    }
+
+    /* ===== HERO ===== */
+    header{
+      padding: 20px 0 0;
+      text-align: center;
+    }
+    .inner{ max-width:var(--max); margin:0 auto; padding:0 var(--gutter); }
+
+    .hero-title{
+      text-indent: -0.05em;
+      font-weight:800;
+      font-size:14vw;
+      line-height:0.7;
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    p{
+      margin:22px auto 12px;
+      max-width:760px;
+      font-size:16px;
+      line-height:1.35;
+      opacity: 1;
+      color: black;
+    }
+
+    .bleed{
+      width:100vw;
+      margin-left:calc(50% - 50vw);
+    }
+    .hero-image{
+      width:100%;
+      height:calc(100vh - 180px);
+      background-image:url("images/DSC_3332.jpg");
+      background-size:cover;
+      background-position:center;
+      filter: brightness(0.9) grayscale(var(--gs));
+      will-change: filter;
+    }
+
+    /* ===== COUNTRY TYPE =====
+       The type treatment from the old country list, kept for reuse.
+       Family is inherited from body (Inter, var(--sans)). */
+    .country-type{
+      font-weight:300;
+      font-size:clamp(26px, 2.8vw, 44px);
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      color:var(--ink);
+    }
+
+    /* ===== COUNTRY PICKER =====
+       min-height also gives the hero its scroll runway. */
+    .canvas{
+      min-height:100vh;
+      padding:40px 0 90px;
+    }
+
+    /* dropdown, right hand side.
+       Custom rather than a native <select>: the OS draws a native option
+       list and no CSS can reach it, so it never matches the page. */
+    .country-select-wrap{
+      display:flex;
+      justify-content:flex-end;
+      /* same width cap as .country-tabs so the icon lines up with the
+         right edge of the photo, not the page gutter */
+      min-height:45px;   /* reserved so the row holds when the button pins */
+    }
+    .country-dd{ position:relative; }
+
+    .country-dd-trigger{
+      display:flex;
+      align-items:center;
+      color:var(--ink);
+      background:transparent;
+      border:0;
+      /* 44px hit area around a 34x21 icon; the padding doubles as the
+         inset from the corner so the icon is not jammed against it */
+      padding:12px;
+      cursor:pointer;
+    }
+    /* while open, pin to the top right of the viewport so the X is always
+       in the same place regardless of where the page was scrolled */
+    .country-dd-trigger.is-open{
+      position:fixed;
+      top:14px;
+      right:var(--gutter);   /* same inset as when closed, so the icon does not shift while it morphs */
+      margin:0;
+    }
+
+    /* 3-bar motion icon: the bottom bar fades while the top two converge
+       and cross into an X. Bars are square -- no rounded corners. */
+    .menu-icon{
+      position:relative;
+      width:34px;
+      height:21px;
+      flex:none;
+    }
+    .menu-icon span{
+      position:absolute;
+      left:0;
+      width:100%;
+      height:3px;
+      background:currentColor;
+      transition:transform 400ms cubic-bezier(0.34, 1.4, 0.64, 1), opacity 240ms ease;
+    }
+    .menu-icon span:nth-child(1){ top:0; }
+    .menu-icon span:nth-child(2){ top:9px; }
+    .menu-icon span:nth-child(3){ top:18px; }
+
+    .country-dd-trigger.is-open .menu-icon span:nth-child(1){ transform:translateY(18px) rotate(45deg); }
+    .country-dd-trigger.is-open .menu-icon span:nth-child(2){ transform:translateY(9px)  rotate(-45deg); }
+    .country-dd-trigger.is-open .menu-icon span:nth-child(3){ opacity:0; }
+
+    /* the trigger sits above the overlay so the icon morphs in place;
+       scroll is locked while open, so it cannot scroll out of view */
+    .country-dd{ z-index:200; }
+
+    /* ===== PAGE TRANSITION =====
+       The country's STAYS panel slides in from the right and pushes the
+       page left, then the navigation happens underneath it -- so the
+       country page is already showing that panel when it loads. */
+    .page-transition{
+      position:fixed;
+      inset:0;
+      z-index:300;
+      display:flex;
+      align-items:flex-end;
+      padding:clamp(28px, 5vw, 90px);
+      transform:translateX(100%);
+      visibility:hidden;
+      pointer-events:none;
+      will-change:transform;
+    }
+    .page-transition.is-active{ visibility:visible; }
+    .page-transition.is-sliding{
+      transform:translateX(0);
+      transition:transform 520ms cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    /* must match .panel-label in countries/stack.css exactly, or the word
+       changes size at the hand-off */
+    .page-transition-label{
+      font-weight:800;
+      font-size:clamp(40px, 9vw, 180px);
+      line-height:0.85;
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+    }
+
+    /* the push. NB: no will-change here -- it would make #app a containing
+       block for position:fixed descendants and un-pin the menu X. */
+    html.is-leaving #app,
+    html.is-leaving .country-nav{
+      transform:translateX(-18%);
+      transition:transform 520ms cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .page-transition.is-sliding,
+      html.is-leaving #app,
+      html.is-leaving .country-nav{ transition:none; }
+    }
+
+    /* ===== FULLSCREEN COUNTRY NAV =====
+       Covers the viewport rather than dropping a small panel. */
+    .country-nav{
+      position:fixed;
+      inset:0;
+      z-index:100;
+      background:var(--paper);
+      padding:120px var(--gutter) 40px;
+      display:flex;
+      flex-direction:column;
+      opacity:0;
+      visibility:hidden;
+      /* visibility flips instantly when opening and only after the fade
+         when closing -- so focus can land the moment .is-open is set */
+      transition:opacity 340ms ease, visibility 0s linear 340ms;
+    }
+    .country-nav.is-open{
+      opacity:1;
+      visibility:visible;
+      transition:opacity 340ms ease, visibility 0s;
+    }
+
+
+    .country-nav-list{
+      list-style:none;
+      margin:auto 0;
+      padding:0;
+    }
+    .country-nav-list li{ list-style:none; }
+    .country-nav-item{
+      text-decoration:none;
+      display:flex;
+      align-items:baseline;
+      gap:clamp(18px, 3vw, 46px);
+      padding:clamp(16px, 2.4vw, 30px) 0;
+      border-top:1px solid var(--hairline);
+      cursor:pointer;
+      color:var(--faded);
+      transition:color 300ms ease;
+      /* staggered entrance, delay set per item below */
+      transform:translateY(14px);
+      opacity:0;
+    }
+    .country-nav-list li:last-child .country-nav-item{ border-bottom:1px solid var(--hairline); }
+    .country-nav.is-open .country-nav-item{
+      transform:translateY(0);
+      opacity:1;
+      transition:color 300ms ease, transform 460ms ease, opacity 460ms ease;
+    }
+    .country-nav.is-open .country-nav-item:nth-child(1){ transition-delay:0ms, 60ms, 60ms; }
+    .country-nav.is-open .country-nav-item:nth-child(2){ transition-delay:0ms, 120ms, 120ms; }
+    .country-nav.is-open .country-nav-item:nth-child(3){ transition-delay:0ms, 180ms, 180ms; }
+    .country-nav.is-open .country-nav-item:nth-child(4){ transition-delay:0ms, 240ms, 240ms; }
+    .country-nav.is-open .country-nav-item:nth-child(5){ transition-delay:0ms, 300ms, 300ms; }
+
+    .country-nav-item:hover,
+    .country-nav-item.is-focused,
+    .country-nav-item[aria-current="true"]{ color:var(--ink); }
+    .country-nav-item:focus,
+    .country-nav-item:focus-visible{ outline:none; }
+
+    .country-nav-index{
+      flex:none;
+      width:3em;
+      font-size:11px;
+      font-weight:500;
+      letter-spacing:0.12em;
+      color:var(--muted);
+    }
+    /* same treatment as .hero-title */
+    .country-nav-name{
+      font-weight:800;
+      font-size:clamp(38px, 7vw, 104px);
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+      line-height:0.9;
+    }
+
+    /* scroll lock: on <html> only -- never on <body>, which would make the
+       body its own scroll container and freeze window.scrollY again */
+    html.nav-open{ overflow:hidden; }
+
+    @media (prefers-reduced-motion: reduce){
+      .country-nav-item,
+      .country-nav.is-open .country-nav-item{ transform:none; transition:color 300ms ease; }
+      .menu-icon span{ transition:opacity 240ms ease; }
+    }
+
+    /* ===== COUNTRY TABS =====
+       Hover-switched tabs on the left, photo on the right. */
+    /* one viewport of scroll per country; the tabs pin while you scroll
+       through it, and scroll position picks the active country */
+    .country-scroll{
+      position:relative;
+      /* one viewport for the block, then a short step per extra country --
+         far less scrolling than a full viewport each */
+      --step:55vh;
+      height:calc(100vh + (var(--country-steps, 2) - 1) * var(--step));
+    }
+    /* one snap point per country, so a flick lands on a country rather
+       than sailing past the whole section */
+    .country-step{
+      position:absolute;
+      left:0;
+      width:1px;
+      height:100vh;
+      pointer-events:none;
+      scroll-snap-align:start;
+    }
+    .country-step:nth-of-type(1){ top:0; }
+    .country-step:nth-of-type(2){ top:calc(1 * var(--step)); }
+    .country-step:nth-of-type(3){ top:calc(2 * var(--step)); }
+    .country-step:nth-of-type(4){ top:calc(3 * var(--step)); }
+    .country-step:nth-of-type(5){ top:calc(4 * var(--step)); }
+    .country-tabs{
+      position:sticky;
+      top:0;
+      /* fills the viewport and centres its row, so the block sits in the
+         middle of the white area rather than hugging the top */
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:minmax(320px, 1.3fr) minmax(0, 2fr);
+      gap:30px;
+      align-items:start;
+      align-content:center;
+      max-width:1440px;
+      margin:0 auto;
+    }
+
+    .country-tab{
+      text-decoration:none;
+      display:block;
+      width:100%;
+      text-align:left;
+      font-family:inherit;
+      background:transparent;
+      border:0;
+      padding:14px 0;
+      cursor:pointer;
+      /* --on is driven continuously by scroll position */
+      color:color-mix(in srgb, var(--ink) calc(var(--on, 0) * 100%), var(--faded));
+    }
+    .country-tab:hover{ color:var(--muted); }
+    .country-tab.is-active:hover{ color:var(--ink); }
+    .country-tab:focus-visible{ outline:1px solid var(--ink); outline-offset:2px; }
+
+    /* same treatment as .hero-title: Inter 800, tight tracking, uppercase */
+    .country-tab-title{
+      display:block;
+      font-weight:800;
+      font-size:clamp(36px, 5.4vw, 96px);
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+      line-height:0.9;
+    }
+
+    .country-tabs-media{
+      display:block;
+      position:relative;
+      aspect-ratio:3 / 2;   /* matches both source photos, so no crop */
+      overflow:hidden;
+      background:var(--panel);
+    }
+    .country-photo{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      opacity:0;   /* written continuously from scroll position */
+      will-change:opacity;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      #app{ transition: none !important; }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px){
+      .hero-title{
+        font-size: 14.5vw;
+      }
+      p{
+        font-size: 10px;
+        margin: 12px auto 10px;
+      }
+      .hero-image{ height: 56vh; }
+      .canvas{ padding:28px 0 60px; }
+      .country-dd-trigger.is-open{ top:10px; }
+      .country-tabs{
+        grid-template-columns:1fr;
+        gap:22px;
+        top:0;
+      }
+      .country-tabs-media{ order:-1; }
+      .country-tab{ padding:10px 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <div class="inner">
+        <h1 class="hero-title">FIELD NOTES</h1>
+        <p>a curated archive of stays, eats, and experiences. ongoing...</p>
+      </div>
+      <div class="bleed">
+        <div class="hero-image"></div>
+      </div>
+    </header>
+
+    <section class="canvas">
+      <div class="inner">
+
+        <div class="country-select-wrap">
+          <div class="country-dd" id="countryDd">
+            <button type="button" class="country-dd-trigger" id="countryDdTrigger"
+                    aria-haspopup="dialog" aria-expanded="false" aria-label="Country" aria-controls="countryNav">
+              <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="country-scroll" id="countryScroll">
+          <div class="country-step" aria-hidden="true"></div>
+          <div class="country-step" aria-hidden="true"></div>
+          <div class="country-tabs">
+
+          <div class="country-tabs-list">
+            <a class="country-tab" href="countries/costa-rica.html" data-country="costa-rica">
+              <span class="country-tab-title">Costa Rica</span>
+            </a>
+            <a class="country-tab" href="countries/puerto-rico.html" data-country="puerto-rico">
+              <span class="country-tab-title">Puerto Rico</span>
+            </a>
+          </div>
+
+          <a class="country-tabs-media" id="countryMediaLink" href="countries/costa-rica.html" aria-label="Costa Rica">
+            <img class="country-photo" data-country="costa-rica" src="images/entrance/costaricaimage.JPG" alt="Costa Rica" width="2304" height="1536" fetchpriority="high" decoding="async">
+            <img class="country-photo" data-country="puerto-rico" src="images/PUERTO.JPG" alt="Puerto Rico" width="2304" height="1536" decoding="async">
+          </a>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- end #app -->
+
+  <div class="country-nav" id="countryNav" role="dialog" aria-modal="true" aria-label="Choose a country">
+    <ul class="country-nav-list" aria-label="Countries">
+      <li>
+        <a class="country-nav-item" href="countries/costa-rica.html" data-country="costa-rica">
+          <span class="country-nav-index">001</span>
+          <span class="country-nav-name">Costa Rica</span>
+        </a>
+      </li>
+      <li>
+        <a class="country-nav-item" href="countries/puerto-rico.html" data-country="puerto-rico">
+          <span class="country-nav-index">002</span>
+          <span class="country-nav-name">Puerto Rico</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="page-transition" id="pageTransition" aria-hidden="true">
+    <span class="page-transition-label" id="pageTransitionLabel">Stays</span>
+  </div>
+
+  <script>
+    if (history.scrollRestoration) history.scrollRestoration = 'manual';
+    /* a #country hash means we came back from that country's page, and the
+       country script below scrolls to it -- don't yank to the top first */
+    if (!location.hash) window.scrollTo(0, 0);
+
+    function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+
+    const heroEl = document.querySelector('.hero-image');
+
+    function updateHeroColor(){
+      if (!heroEl) return;
+      /* fade across most of the hero's own height so the colour arrives
+         gradually as the image scrolls away, not in one wheel notch */
+      const fadeDistance = Math.max(heroEl.offsetHeight * 0.75, 200);
+      const progress = clamp(window.scrollY / fadeDistance, 0, 1);
+      const gs = (1 - progress).toFixed(3);
+      document.documentElement.style.setProperty('--gs', gs);
+      /* set it on the element too: Safari does not always repaint a
+         filter() that reads a custom property */
+      heroEl.style.filter = 'brightness(0.9) grayscale(' + gs + ')';
+    }
+
+    updateHeroColor();
+    window.addEventListener('scroll', () => requestAnimationFrame(updateHeroColor), { passive: true });
+    window.addEventListener('resize', updateHeroColor);
+    window.addEventListener('load', updateHeroColor);
+  </script>
+
+  <script>
+    (() => {
+      const tabs    = [...document.querySelectorAll('.country-tab')];
+      const photos  = [...document.querySelectorAll('.country-photo')];
+      const trigger = document.getElementById('countryDdTrigger');
+      const nav     = document.getElementById('countryNav');
+      const options = [...nav.querySelectorAll('.country-nav-item')];
+
+      /* discrete state only -- the crossfade itself is driven by scroll */
+      const mediaLink = document.getElementById('countryMediaLink');
+
+      function setCountry(value){
+        let href = null, label = null;
+        tabs.forEach(el => {
+          const on = el.dataset.country === value;
+          el.classList.toggle('is-active', on);
+          if (on){ href = el.getAttribute('href'); label = el.textContent.trim(); }
+          on ? el.setAttribute('aria-current', 'true') : el.removeAttribute('aria-current');
+        });
+        options.forEach(el => {
+          el.dataset.country === value
+            ? el.setAttribute('aria-current', 'true')
+            : el.removeAttribute('aria-current');
+        });
+        /* the photo links to whichever country is showing */
+        if (href){
+          mediaLink.setAttribute('href', href);
+          mediaLink.setAttribute('aria-label', label);
+        }
+      }
+
+      /* ---- fullscreen nav: the trigger itself toggles, so the icon
+             morphs between the bars and the X in place ---- */
+      function navIsOpen(){ return nav.classList.contains('is-open'); }
+
+      let focusIndex = 0;
+      /* highlight only -- used by the mouse, so hovering never steals
+         real focus and never draws a focus ring */
+      function highlight(i){
+        focusIndex = (i + options.length) % options.length;
+        options.forEach((o, n) => o.classList.toggle('is-focused', n === focusIndex));
+      }
+      /* highlight + real focus -- used by the keyboard */
+      function focusOption(i){
+        highlight(i);
+        options[focusIndex].focus();
+      }
+
+      function openNav(){
+        nav.classList.add('is-open');
+        trigger.classList.add('is-open');
+        document.documentElement.classList.add('nav-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        /* force a style flush so visibility is already 'visible' -- a hidden
+           element cannot take focus, and rAF is unreliable in background tabs */
+        void nav.offsetWidth;
+        focusOption(Math.max(0, options.findIndex(o => o.getAttribute('aria-selected') === 'true')));
+      }
+      function closeNav(){
+        nav.classList.remove('is-open');
+        trigger.classList.remove('is-open');
+        document.documentElement.classList.remove('nav-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        options.forEach(o => o.classList.remove('is-focused'));
+        trigger.focus();
+      }
+
+      trigger.addEventListener('click', () => navIsOpen() ? closeNav() : openNav());
+
+      options.forEach(o => {
+        o.addEventListener('mouseenter', () => highlight(options.indexOf(o)));
+      });
+
+      document.addEventListener('keydown', e => {
+        if (!navIsOpen()) return;
+        switch (e.key){
+          case 'Escape':    closeNav(); break;
+          case 'ArrowDown': e.preventDefault(); focusOption(focusIndex + 1); break;
+          case 'ArrowUp':   e.preventDefault(); focusOption(focusIndex - 1); break;
+          case 'Tab':
+            /* keep focus inside: toggle between the list and the trigger */
+            e.preventDefault();
+            if (document.activeElement === trigger) focusOption(focusIndex);
+            else trigger.focus();
+            break;
+        }
+      });
+
+      /* ---- scroll drives the active country ---- */
+      const scroller = document.getElementById('countryScroll');
+      const order = tabs.map(el => el.dataset.country);
+      scroller.style.setProperty('--country-steps', order.length);
+
+      /* ease the ends of the fade so it glides instead of running linearly
+         into its stops */
+      function smoothstep(x){ return x * x * (3 - 2 * x); }
+
+      let current = null;
+      function updateFromScroll(){
+        const total = scroller.offsetHeight - window.innerHeight;
+        if (total <= 0) return;
+        const passed = clamp(-scroller.getBoundingClientRect().top, 0, total);
+
+        /* t runs 0 -> N-1 continuously, so the photos cross-fade *with* the
+           scroll instead of snapping over at a threshold */
+        const t = (passed / total) * (order.length - 1);
+
+        /* each photo fades in *over* the one before and then stays opaque.
+           Fading both toward 0.5 would let the grey backdrop show through
+           at the midpoint, which is what made the swap look muddy. */
+        photos.forEach((el, i) => {
+          el.style.opacity = smoothstep(clamp(t - (i - 1), 0, 1)).toFixed(3);
+        });
+        tabs.forEach((el, i) => {
+          el.style.setProperty('--on', smoothstep(clamp(1 - Math.abs(t - i), 0, 1)).toFixed(3));
+        });
+
+        const nearest = Math.round(t);
+        if (order[nearest] !== current){
+          current = order[nearest];
+          setCountry(current);
+        }
+      }
+
+      /* called directly rather than through rAF: it is one rect read plus an
+         integer compare, and rAF does not fire in background tabs */
+      window.addEventListener('scroll', updateFromScroll, { passive: true });
+      window.addEventListener('resize', updateFromScroll);
+      updateFromScroll();
+
+      /* ---- arriving back from a country page ----
+         countries/*.html link to index.html#<slug>, so return to that
+         country in the scroll track rather than the top of the hero */
+      /* Re-applied as layout settles, because the track's height and offset
+         are not final while the page is still parsing -- but never once the
+         reader has taken control of the scroll themselves. */
+      let userScrolled = false;
+      ['wheel', 'touchstart', 'keydown'].forEach(t =>
+        window.addEventListener(t, () => { userScrolled = true; }, { passive: true, once: true }));
+
+      function landOnHash(){
+        if (userScrolled) return;
+        const i = order.indexOf(location.hash.replace('#', ''));
+        if (i < 0) return;
+        const total = scroller.offsetHeight - window.innerHeight;
+        if (total <= 0) return;
+        window.scrollTo(0, scroller.offsetTop + total * (i / Math.max(1, order.length - 1)));
+        updateFromScroll();
+      }
+
+      landOnHash();
+      document.addEventListener('DOMContentLoaded', landOnHash);
+      window.addEventListener('load', landOnHash);
+      /* changing the hash on an already-loaded page is a same-document
+         navigation, so nothing re-runs on its own */
+      window.addEventListener('hashchange', () => { userScrolled = false; landOnHash(); });
+
+      /* ---- page transition ----
+         Slide the destination's STAYS panel in from the right, push the
+         page left behind it, then navigate. The country page lands with
+         that same panel already in place, so it reads as one movement.
+         Colours are the first panel of each country page -- keep them in
+         step if that palette changes. */
+      const FIRST_PANEL = {
+        'costa-rica':  { bg: '#EDE9DB', ink: '#000000' },
+        'puerto-rico': { bg: '#D2C2A2', ink: '#000000' }
+      };
+      const TRANSITION_MS = 520;
+      const overlay = document.getElementById('pageTransition');
+      const overlayLabel = document.getElementById('pageTransitionLabel');
+
+      function transitionTo(e, href, country){
+        /* leave modified clicks alone so open-in-new-tab still works */
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        e.preventDefault();
+        const skin = FIRST_PANEL[country] || { bg: '#FFFFFF', ink: '#000000' };
+        overlay.style.background = skin.bg;
+        overlayLabel.style.color = skin.ink;
+        overlay.classList.add('is-active');
+        void overlay.offsetWidth;                       /* flush before animating */
+        overlay.classList.add('is-sliding');
+        document.documentElement.classList.add('is-leaving');
+        setTimeout(() => { window.location.href = href; }, TRANSITION_MS);
+      }
+
+      function scrollToCountry(value){
+        const i = Math.max(0, order.indexOf(value));
+        const total = scroller.offsetHeight - window.innerHeight;
+        const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({
+          top: scroller.offsetTop + total * (i / Math.max(1, order.length - 1)),
+          behavior: reduce ? 'auto' : 'smooth'
+        });
+      }
+
+      /* the names take two clicks: the first brings that country's photo
+         into view, the second goes into its page */
+      tabs.forEach(el => {
+        el.addEventListener('click', e => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+          const country = el.dataset.country;
+          if (country !== current){
+            e.preventDefault();
+            scrollToCountry(country);
+            return;
+          }
+          transitionTo(e, el.getAttribute('href'), country);
+        });
+      });
+
+      /* the photo and the dropdown go straight in -- the photo is already
+         the country you are looking at, and the menu is an explicit choice */
+      [...document.querySelectorAll('.country-nav-item'),
+       document.getElementById('countryMediaLink')]
+        .filter(Boolean)
+        .forEach(el => {
+          el.addEventListener('click', e => transitionTo(e, el.getAttribute('href'), el.dataset.country || current));
+        });
+    })();
+  </script>
+
+</body>
+</html>

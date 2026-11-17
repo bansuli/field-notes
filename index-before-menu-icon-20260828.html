@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Field Notes</title>
+  <!-- Declared explicitly so the browser cannot fall back to whatever
+       favicon it has cached for the localhost origin. -->
+  <link rel="icon" href="data:,">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="preload" href="images/DSC_3332.jpg" as="image">
+
+  <style>
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    :root{
+      --gs: 1;
+      --ink:black;
+      --muted: rgba(11,11,11,0.62);
+      --faded: rgba(11,11,11,0.20);
+      --panel: rgba(11,11,11,0.055);
+      --hairline: rgba(11,11,11,0.14);
+      --paper:white;
+      --sans:"Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --max: 1560px;
+      --gutter: 34px;
+    }
+
+    /* overflow-x on <body> would make the body its own scroll container,
+       which freezes window.scrollY and kills the hero colour fade.
+       Keep the horizontal clip on <html> only. */
+    html{ overflow-x:hidden; }
+    html, body{ background:var(--paper); }
+    body{
+      font-family:var(--sans);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+    }
+
+    /* ===== HERO ===== */
+    header{
+      padding: 20px 0 0;
+      text-align: center;
+    }
+    .inner{ max-width:var(--max); margin:0 auto; padding:0 var(--gutter); }
+
+    .hero-title{
+      text-indent: -0.05em;
+      font-weight:800;
+      font-size:14vw;
+      line-height:0.7;
+      letter-spacing:-0.05em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    p{
+      margin:22px auto 12px;
+      max-width:760px;
+      font-size:16px;
+      line-height:1.35;
+      opacity: 1;
+      color: black;
+    }
+
+    .bleed{
+      width:100vw;
+      margin-left:calc(50% - 50vw);
+    }
+    .hero-image{
+      width:100%;
+      height:calc(100vh - 180px);
+      background-image:url("images/DSC_3332.jpg");
+      background-size:cover;
+      background-position:center;
+      filter: brightness(0.9) grayscale(var(--gs));
+      will-change: filter;
+    }
+
+    /* ===== COUNTRY TYPE =====
+       The type treatment from the old country list, kept for reuse.
+       Family is inherited from body (Inter, var(--sans)). */
+    .country-type{
+      font-weight:300;
+      font-size:clamp(26px, 2.8vw, 44px);
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      color:var(--ink);
+    }
+
+    /* ===== COUNTRY PICKER =====
+       min-height also gives the hero its scroll runway. */
+    .canvas{
+      min-height:100vh;
+      padding:40px 0 90px;
+    }
+
+    /* dropdown, right hand side.
+       Custom rather than a native <select>: the OS draws a native option
+       list and no CSS can reach it, so it never matches the page. */
+    .country-select-wrap{
+      display:flex;
+      justify-content:flex-end;
+    }
+    .country-dd{ position:relative; }
+
+    .country-dd-trigger{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-family:inherit;
+      font-size:12px;
+      font-weight:500;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:var(--ink);
+      background:transparent;
+      border:0;
+      border-bottom:1px solid var(--hairline);
+      border-radius:0;
+      padding:8px 2px;
+      cursor:pointer;
+      transition:border-color 300ms ease;
+    }
+    .country-dd-trigger:hover,
+    .country-dd-trigger:focus-visible{ border-bottom-color:var(--ink); }
+    .country-dd-trigger:focus-visible{ outline:1px solid var(--ink); outline-offset:3px; }
+
+    .country-dd-caret{
+      width:9px;
+      height:9px;
+      flex:none;
+      transition:transform 260ms ease;
+    }
+
+    /* ===== FULLSCREEN COUNTRY NAV =====
+       Covers the viewport rather than dropping a small panel. */
+    .country-nav{
+      position:fixed;
+      inset:0;
+      z-index:100;
+      background:var(--paper);
+      padding:26px var(--gutter) 40px;
+      display:flex;
+      flex-direction:column;
+      opacity:0;
+      visibility:hidden;
+      /* visibility flips instantly when opening and only after the fade
+         when closing -- so focus can land the moment .is-open is set */
+      transition:opacity 340ms ease, visibility 0s linear 340ms;
+    }
+    .country-nav.is-open{
+      opacity:1;
+      visibility:visible;
+      transition:opacity 340ms ease, visibility 0s;
+    }
+
+    .country-nav-close{
+      align-self:flex-end;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-family:inherit;
+      font-size:12px;
+      font-weight:500;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:var(--ink);
+      background:transparent;
+      border:0;
+      padding:8px 2px;
+      cursor:pointer;
+    }
+    .country-nav-close svg{ width:10px; height:10px; }
+    .country-nav-close:focus-visible{ outline:1px solid var(--ink); outline-offset:3px; }
+
+    .country-nav-list{
+      list-style:none;
+      margin:auto 0;
+      padding:0;
+    }
+    .country-nav-item{
+      display:flex;
+      align-items:baseline;
+      gap:clamp(18px, 3vw, 46px);
+      padding:clamp(16px, 2.4vw, 30px) 0;
+      border-top:1px solid var(--hairline);
+      cursor:pointer;
+      color:var(--faded);
+      transition:color 300ms ease;
+      /* staggered entrance, delay set per item below */
+      transform:translateY(14px);
+      opacity:0;
+    }
+    .country-nav-item:last-child{ border-bottom:1px solid var(--hairline); }
+    .country-nav.is-open .country-nav-item{
+      transform:translateY(0);
+      opacity:1;
+      transition:color 300ms ease, transform 460ms ease, opacity 460ms ease;
+    }
+    .country-nav.is-open .country-nav-item:nth-child(1){ transition-delay:0ms, 60ms, 60ms; }
+    .country-nav.is-open .country-nav-item:nth-child(2){ transition-delay:0ms, 120ms, 120ms; }
+    .country-nav.is-open .country-nav-item:nth-child(3){ transition-delay:0ms, 180ms, 180ms; }
+    .country-nav.is-open .country-nav-item:nth-child(4){ transition-delay:0ms, 240ms, 240ms; }
+    .country-nav.is-open .country-nav-item:nth-child(5){ transition-delay:0ms, 300ms, 300ms; }
+
+    .country-nav-item:hover,
+    .country-nav-item.is-focused,
+    .country-nav-item[aria-selected="true"]{ color:var(--ink); }
+
+    .country-nav-index{
+      flex:none;
+      width:3em;
+      font-size:11px;
+      font-weight:500;
+      letter-spacing:0.12em;
+      color:var(--muted);
+    }
+    .country-nav-name{
+      font-weight:300;
+      font-size:clamp(38px, 7vw, 104px);
+      letter-spacing:0.01em;
+      text-transform:uppercase;
+      line-height:1;
+    }
+
+    /* scroll lock: on <html> only -- never on <body>, which would make the
+       body its own scroll container and freeze window.scrollY again */
+    html.nav-open{ overflow:hidden; }
+
+    @media (prefers-reduced-motion: reduce){
+      .country-nav-item,
+      .country-nav.is-open .country-nav-item{ transform:none; transition:color 300ms ease; }
+    }
+
+    /* ===== COUNTRY TABS =====
+       Hover-switched tabs on the left, photo on the right. */
+    .country-tabs{
+      display:grid;
+      grid-template-columns:minmax(240px, 0.85fr) minmax(0, 2fr);
+      gap:30px;
+      align-items:start;
+      max-width:1180px;
+      margin:70px auto 0;   /* centred under the hero */
+    }
+
+    .country-tab{
+      display:block;
+      width:100%;
+      text-align:left;
+      font-family:inherit;
+      background:transparent;
+      border:0;
+      padding:20px 24px;
+      cursor:pointer;
+      color:var(--faded);
+      transition:background-color 420ms ease, color 420ms ease;
+    }
+    .country-tab.is-active{
+      background:var(--panel);
+      color:var(--ink);
+    }
+    .country-tab:hover{ color:var(--muted); }
+    .country-tab.is-active:hover{ color:var(--ink); }
+    .country-tab:focus-visible{ outline:1px solid var(--ink); outline-offset:2px; }
+
+    .country-tab-title{
+      display:block;
+      font-weight:300;
+      font-size:clamp(22px, 2.1vw, 34px);
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      line-height:1.05;
+    }
+
+    .country-tabs-media{
+      position:relative;
+      aspect-ratio:3 / 2;   /* matches both source photos, so no crop */
+      overflow:hidden;
+      background:var(--panel);
+    }
+    .country-photo{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      opacity:0;
+      transition:opacity 600ms ease;
+    }
+    .country-photo.is-active{ opacity:1; }
+
+    @media (prefers-reduced-motion: reduce){
+      #app{ transition: none !important; }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px){
+      .hero-title{
+        font-size: 14.5vw;
+      }
+      p{
+        font-size: 10px;
+        margin: 12px auto 10px;
+      }
+      .hero-image{ height: 56vh; }
+      .canvas{ padding:28px 0 60px; }
+      .country-tabs{
+        grid-template-columns:1fr;
+        gap:22px;
+        margin-top:44px;
+      }
+      .country-tabs-media{ order:-1; }
+      .country-tab{ padding:16px 18px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <div class="inner">
+        <h1 class="hero-title">FIELD NOTES</h1>
+        <p>a curated archive of stays, eats, and experiences. ongoing...</p>
+      </div>
+      <div class="bleed">
+        <div class="hero-image"></div>
+      </div>
+    </header>
+
+    <section class="canvas">
+      <div class="inner">
+
+        <div class="country-select-wrap">
+          <div class="country-dd" id="countryDd">
+            <button type="button" class="country-dd-trigger" id="countryDdTrigger"
+                    aria-haspopup="dialog" aria-expanded="false" aria-label="Country" aria-controls="countryNav">
+              <span id="countryDdValue">Costa Rica</span>
+              <svg class="country-dd-caret" viewBox="0 0 10 6" aria-hidden="true">
+                <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="country-tabs">
+
+          <div class="country-tabs-list" role="tablist" aria-label="Countries">
+            <button type="button" role="tab" class="country-tab" data-country="costa-rica" aria-selected="false">
+              <span class="country-tab-title">Costa Rica</span>
+            </button>
+            <button type="button" role="tab" class="country-tab" data-country="puerto-rico" aria-selected="false">
+              <span class="country-tab-title">Puerto Rico</span>
+            </button>
+          </div>
+
+          <div class="country-tabs-media">
+            <img class="country-photo" data-country="costa-rica" src="images/entrance/costaricaimage.JPG" alt="Costa Rica" width="2304" height="1536" fetchpriority="high" decoding="async">
+            <img class="country-photo" data-country="puerto-rico" src="images/PUERTO.JPG" alt="Puerto Rico" width="2304" height="1536" decoding="async">
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- end #app -->
+
+  <div class="country-nav" id="countryNav" role="dialog" aria-modal="true" aria-label="Choose a country">
+    <button type="button" class="country-nav-close" id="countryNavClose">
+      Close
+      <svg viewBox="0 0 10 10" aria-hidden="true">
+        <path d="M1 1l8 8M9 1l-8 8" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </button>
+    <ul class="country-nav-list" role="listbox" aria-label="Country">
+      <li class="country-nav-item" role="option" tabindex="-1" data-country="costa-rica" aria-selected="true">
+        <span class="country-nav-index">001</span>
+        <span class="country-nav-name">Costa Rica</span>
+      </li>
+      <li class="country-nav-item" role="option" tabindex="-1" data-country="puerto-rico" aria-selected="false">
+        <span class="country-nav-index">002</span>
+        <span class="country-nav-name">Puerto Rico</span>
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    if (history.scrollRestoration) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+
+    function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+
+    const heroEl = document.querySelector('.hero-image');
+
+    function updateHeroColor(){
+      if (!heroEl) return;
+      /* fade across most of the hero's own height so the colour arrives
+         gradually as the image scrolls away, not in one wheel notch */
+      const fadeDistance = Math.max(heroEl.offsetHeight * 0.75, 200);
+      const progress = clamp(window.scrollY / fadeDistance, 0, 1);
+      const gs = (1 - progress).toFixed(3);
+      document.documentElement.style.setProperty('--gs', gs);
+      /* set it on the element too: Safari does not always repaint a
+         filter() that reads a custom property */
+      heroEl.style.filter = 'brightness(0.9) grayscale(' + gs + ')';
+    }
+
+    updateHeroColor();
+    window.addEventListener('scroll', () => requestAnimationFrame(updateHeroColor), { passive: true });
+    window.addEventListener('resize', updateHeroColor);
+    window.addEventListener('load', updateHeroColor);
+  </script>
+
+  <script>
+    (() => {
+      const tabs    = [...document.querySelectorAll('.country-tab')];
+      const photos  = [...document.querySelectorAll('.country-photo')];
+      const trigger  = document.getElementById('countryDdTrigger');
+      const ddValue  = document.getElementById('countryDdValue');
+      const nav      = document.getElementById('countryNav');
+      const navClose = document.getElementById('countryNavClose');
+      const options  = [...nav.querySelectorAll('.country-nav-item')];
+
+      function setCountry(value){
+        tabs.forEach(el => {
+          const on = el.dataset.country === value;
+          el.classList.toggle('is-active', on);
+          el.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        photos.forEach(el => el.classList.toggle('is-active', el.dataset.country === value));
+        options.forEach(el => {
+          const on = el.dataset.country === value;
+          el.setAttribute('aria-selected', on ? 'true' : 'false');
+          if (on) ddValue.textContent = el.querySelector('.country-nav-name').textContent.trim();
+        });
+      }
+
+      /* ---- fullscreen nav ---- */
+      let lastFocus = null;
+
+      function openNav(){
+        lastFocus = document.activeElement;
+        nav.classList.add('is-open');
+        document.documentElement.classList.add('nav-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        /* force a style flush so visibility is already 'visible' -- a hidden
+           element cannot take focus, and rAF is unreliable in background tabs */
+        void nav.offsetWidth;
+        focusOption(Math.max(0, options.findIndex(o => o.getAttribute('aria-selected') === 'true')));
+      }
+      function closeNav(){
+        nav.classList.remove('is-open');
+        document.documentElement.classList.remove('nav-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        options.forEach(o => o.classList.remove('is-focused'));
+        (lastFocus && lastFocus !== document.body ? lastFocus : trigger).focus();
+      }
+      function navIsOpen(){ return nav.classList.contains('is-open'); }
+
+      let focusIndex = 0;
+      function focusOption(i){
+        focusIndex = (i + options.length) % options.length;
+        options.forEach((o, n) => o.classList.toggle('is-focused', n === focusIndex));
+        options[focusIndex].focus();
+      }
+
+      trigger.addEventListener('click', openNav);
+      navClose.addEventListener('click', closeNav);
+
+      options.forEach(o => {
+        o.addEventListener('click', () => { setCountry(o.dataset.country); closeNav(); });
+        o.addEventListener('mouseenter', () => focusOption(options.indexOf(o)));
+      });
+
+      document.addEventListener('keydown', e => {
+        if (!navIsOpen()) return;
+        switch (e.key){
+          case 'Escape':    closeNav(); break;
+          case 'ArrowDown': e.preventDefault(); focusOption(focusIndex + 1); break;
+          case 'ArrowUp':   e.preventDefault(); focusOption(focusIndex - 1); break;
+          case 'Enter':
+          case ' ':
+            /* on the close button, let it behave like a button */
+            if (options.includes(document.activeElement)){
+              e.preventDefault();
+              setCountry(document.activeElement.dataset.country);
+              closeNav();
+            }
+            break;
+          case 'Tab':
+            /* keep focus inside: toggle between the list and Close */
+            e.preventDefault();
+            if (document.activeElement === navClose) focusOption(focusIndex);
+            else navClose.focus();
+            break;
+        }
+      });
+
+      /* ---- tabs ---- */
+      tabs.forEach(el => {
+        const pick = () => setCountry(el.dataset.country);
+        el.addEventListener('mouseenter', pick);   /* switch on hover */
+        el.addEventListener('focus', pick);        /* keyboard */
+        el.addEventListener('click', pick);        /* touch */
+      });
+
+      setCountry(tabs[0].dataset.country);
+    })();
+  </script>
+
+</body>
+</html>
